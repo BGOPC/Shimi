@@ -241,7 +241,7 @@ const chkCompN = (inp, ca, an) => {
 
 const FD = (id, label, ph, dir) => ({ id, label, ph, dir });
 const fF = ph => FD("f", "فرمول", ph || "مثلاً Ca3(PO4)2", "ltr");
-const fC = () => FD("c", "بار", "مثلاً 2+ یا 1−", "ltr");
+const fC = () => Object.assign(FD("c", "بار", "مثلاً 2+ یا 1−", "ltr"), { charge: true });
 const fN = l => FD("n", l || "نام", "به فارسی", "rtl");
 const fK = () => FD("k", "رنگ", "مثلاً سفید", "rtl");
 
@@ -366,9 +366,21 @@ const nextQ = () => {
   $("#qBadge").textContent = q.badge;
   $("#qPrompt").innerHTML = q.prompt;
   $("#fields").innerHTML = q.fields.map(f =>
-    `<label class="fld" id="fld_${f.id}"><span>${f.label}</span>` +
+    `<div class="fld" id="fld_${f.id}"><label for="in_${f.id}"><span>${f.label}</span></label>` +
     `<input class="in ${f.dir}" id="in_${f.id}" dir="${f.dir}" type="text" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="done" placeholder="${f.ph}">` +
-    `<small class="fb" id="fb_${f.id}"></small></label>`).join("");
+    (f.charge ? `<div class="charge-options" role="group" aria-label="انتخاب بار">${["-1", "-2", "-3", "+1", "+2", "+3"].map(c => `<button class="charge-option" type="button" data-charge="${c}" data-charge-for="${f.id}" aria-pressed="false">${c}</button>`).join("")}</div>` : "") +
+    `<small class="fb" id="fb_${f.id}"></small></div>`).join("");
+  $$("#fields .charge-option").forEach(btn => btn.addEventListener("click", () => {
+    if (S.locked) return;
+    const input = $("#in_" + btn.dataset.chargeFor);
+    if (!input || input.readOnly) return;
+    input.value = btn.dataset.charge;
+    $$("#fields .charge-option").forEach(option => option.setAttribute("aria-pressed", String(option === btn)));
+  }));
+  const chargeInput = $("#fields input#in_c");
+  if (chargeInput) chargeInput.addEventListener("input", () => {
+    $$("#fields .charge-option").forEach(btn => btn.setAttribute("aria-pressed", String(btn.dataset.charge === chargeInput.value)));
+  });
   $("#result").className = "result hidden";
   $("#result").innerHTML = "";
   $("#actBtn").textContent = "بررسی";
@@ -390,6 +402,7 @@ const act = () => {
     $("#fb_" + f.id).textContent = r.ok ? "✓ درست" : "✗ " + r.msg;
     $("#in_" + f.id).readOnly = true;
   });
+  $$("#fields .charge-option").forEach(btn => btn.disabled = true);
   S.locked = true;
   S.total++;
   if (ok) {
@@ -470,6 +483,7 @@ $("#backHome").addEventListener("click", () => show("home"));
 
 document.addEventListener("keydown", e => {
   if (e.key !== "Enter" || !$("#quiz").classList.contains("active")) return;
+  if (e.target.closest && e.target.closest(".charge-option")) return;
   e.preventDefault();
   const ins = $$("#fields input"), i = ins.indexOf(document.activeElement);
   if (!S.locked && i >= 0 && i < ins.length - 1) { ins[i + 1].focus(); return; }
