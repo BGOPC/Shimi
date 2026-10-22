@@ -2,739 +2,90 @@
 <html lang="fa" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#6d4aff">
-<title>تمرین یون‌ها و رسوب‌ها</title>
-<style>
-:root{
-  --bg1:#efeaff;--bg2:#e2f6f2;--card:#ffffff;--ink:#1e1b33;--muted:#6f6a86;--line:#e4e0f2;
-  --pri:#6d4aff;--pri-d:#5534e6;--pri-soft:rgba(109,74,255,.09);--teal:#14b8a6;
-  --ok:#16a34a;--ok-bg:#e9f9ef;--bad:#e11d48;--bad-bg:#fff0f3;--chip:#f4f1ff;
-  --shadow:0 12px 32px rgba(60,40,140,.12);
-}
-@media (prefers-color-scheme:dark){
-  :root{--bg1:#15122a;--bg2:#0e2125;--card:#1f1b36;--ink:#f1eefc;--muted:#a69fc6;--line:#352f57;
-    --chip:#2a2548;--pri-soft:rgba(140,115,255,.16);--ok-bg:#0f2e1d;--bad-bg:#3a1322;--shadow:0 12px 32px rgba(0,0,0,.38);}
-}
-*{box-sizing:border-box}
-html,body{margin:0}
-body{
-  font-family:Vazirmatn,Vazir,"IRANSans","Segoe UI",Tahoma,system-ui,sans-serif;
-  color:var(--ink);line-height:1.75;min-height:100vh;
-  background:linear-gradient(160deg,var(--bg1),var(--bg2)) fixed;
-  -webkit-tap-highlight-color:transparent;
-}
-.app{max-width:720px;margin:0 auto;padding:20px 16px 48px}
-.hero{display:flex;align-items:center;gap:14px;margin:6px 0 20px}
-.logo{width:54px;height:54px;border-radius:17px;flex:none;display:grid;place-items:center;color:#fff;
-  font:700 22px/1 "Segoe UI",Roboto,Arial,sans-serif;background:linear-gradient(135deg,var(--pri),var(--teal));box-shadow:var(--shadow)}
-.logo sup{font-size:12px}
-h1{font-size:1.3rem;margin:0}
-.hero p{margin:0;color:var(--muted);font-size:.9rem}
-.card{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:20px;box-shadow:var(--shadow);margin-bottom:16px}
-.card h2{margin:0 0 2px;font-size:1.12rem}
-.muted{color:var(--muted)}
-.small{font-size:.88rem}
-
-/* tiles */
-.tiles{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0 16px}
-.tile{position:relative;cursor:pointer;display:block;user-select:none}
-.tile input{position:absolute;opacity:0;pointer-events:none}
-.tile-in{display:flex;flex-direction:column;gap:2px;padding:14px 14px 12px;height:100%;
-  border:2px solid var(--line);border-radius:16px;transition:border-color .15s,background .15s,transform .1s}
-.tile:active .tile-in{transform:scale(.98)}
-.tile-in .sym{font:700 1.25rem/1.3 "Segoe UI",Roboto,Arial,sans-serif;color:var(--pri);direction:ltr;text-align:right}
-.tile-in b{font-size:.98rem}
-.tile-in small{color:var(--muted)}
-.tile-in::after{content:"";position:absolute;top:12px;left:12px;width:22px;height:22px;border-radius:50%;
-  border:2px solid var(--line);transition:.15s}
-.tile input:checked + .tile-in{border-color:var(--pri);background:var(--pri-soft)}
-.tile input:checked + .tile-in::after{background:var(--pri) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5'/%3E%3C/svg%3E") center/14px no-repeat;border-color:var(--pri)}
-.tile input:focus-visible + .tile-in{outline:3px solid var(--pri-soft)}
-
-/* buttons */
-.btn{font:inherit;border:0;border-radius:14px;padding:12px 18px;cursor:pointer;font-weight:700;transition:transform .08s,filter .15s,background .15s}
-.btn:active{transform:scale(.97)}
-.btn:disabled{opacity:.45;cursor:not-allowed}
-.primary{background:linear-gradient(135deg,var(--pri),#8a5cff);color:#fff;box-shadow:0 8px 18px rgba(109,74,255,.3)}
-.primary:hover:not(:disabled){filter:brightness(1.07)}
-.teal{background:linear-gradient(135deg,#0ea5a0,var(--teal));color:#fff;box-shadow:0 8px 18px rgba(20,184,166,.28)}
-.ghost{background:var(--chip);color:var(--ink)}
-.big{width:100%;padding:14px;font-size:1.05rem}
-.comp-card{background:linear-gradient(135deg,var(--card),var(--card)) padding-box,linear-gradient(135deg,var(--teal),var(--pri)) border-box;border:2px solid transparent}
-.examples{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 14px}
-.ex{background:var(--chip);border-radius:10px;padding:4px 10px;font-size:.9rem}
-
-/* quiz */
-.bar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px;flex-wrap:wrap}
-.stats{display:flex;gap:6px}
-.st{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:4px 10px;font-size:.92rem;white-space:nowrap}
-.st.ok b{color:var(--ok)}.st.bad b{color:var(--bad)}.st.streak b{color:#f59e0b}
-.qcard{background:var(--card);border:2px solid var(--line);border-radius:24px;padding:20px;box-shadow:var(--shadow);transition:border-color .2s}
-.qcard.good{border-color:var(--ok)}
-.qcard.badc{border-color:var(--bad)}
-.qtag{display:inline-block;font-size:.8rem;background:var(--pri-soft);color:var(--pri);padding:2px 10px;border-radius:999px;font-weight:700}
-.qprompt{margin:10px 0 4px;color:var(--muted)}
-.qbig{font-size:2rem;font-weight:800;text-align:center;margin:10px 0 18px;padding:16px 8px;border-radius:18px;background:var(--chip);line-height:1.5;word-break:break-word}
-.qbig .chem{font-size:2.3rem}
-.qbig .sub-line{display:block;font-size:1.05rem;font-weight:600;color:var(--muted);margin-top:4px}
-.chem{font-family:"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;direction:ltr;unicode-bidi:isolate;display:inline-block;white-space:nowrap}
-.chem sub{font-size:.62em;vertical-align:-.28em;line-height:0}
-.chem sup{font-size:.62em;vertical-align:.62em;line-height:0;margin-inline-start:1px}
-
-.field{margin-bottom:14px}
-.field>label{display:block;font-weight:700;margin-bottom:6px;font-size:.95rem}
-.field input{width:100%;font:inherit;font-size:1.15rem;padding:12px 14px;border-radius:14px;border:2px solid var(--line);
-  background:var(--card);color:var(--ink);outline:none;transition:border-color .15s,background .15s}
-.field input:focus{border-color:var(--pri)}
-.field input.ltr{font-family:"Segoe UI",Roboto,Arial,sans-serif;direction:ltr;text-align:left}
-.field.good input{border-color:var(--ok);background:var(--ok-bg)}
-.field.bad input{border-color:var(--bad);background:var(--bad-bg)}
-.field.good>label::after{content:" ✓";color:var(--ok)}
-.field.bad>label::after{content:" ✗";color:var(--bad)}
-.preview{min-height:1.6em;margin-top:4px;color:var(--muted);text-align:left;font-size:1.15rem}
-.charge-row{display:flex;flex-direction:column;gap:8px}
-.chips{display:flex;flex-wrap:wrap;gap:8px}
-.chip{font:inherit;cursor:pointer;border:2px solid var(--line);background:var(--chip);color:var(--ink);border-radius:12px;padding:6px 12px;
-  font-weight:700;transition:.12s;display:inline-flex;align-items:center;gap:7px}
-.chip.ch{font-family:"Segoe UI",Roboto,Arial,sans-serif;direction:ltr;min-width:48px;justify-content:center}
-.chip.on{border-color:var(--pri);background:var(--pri-soft);color:var(--pri)}
-.chip i{width:16px;height:16px;border-radius:50%;display:inline-block;border:1px solid rgba(0,0,0,.2)}
-.field.good .chip.on{border-color:var(--ok);background:var(--ok-bg);color:var(--ok)}
-.field.bad .chip.on{border-color:var(--bad);background:var(--bad-bg);color:var(--bad)}
-.chip:disabled{cursor:default}
-
-.actions{display:flex;gap:10px;margin-top:6px}
-.actions .primary,.actions .next{flex:1;padding:14px;font-size:1.05rem}
-.next{background:linear-gradient(135deg,#0ea5a0,var(--teal));color:#fff}
-.feedback{margin-top:14px;border-radius:16px;padding:14px 16px;animation:pop .25s ease}
-.feedback.good{background:var(--ok-bg);border:1px solid rgba(22,163,74,.35)}
-.feedback.bad{background:var(--bad-bg);border:1px solid rgba(225,29,72,.35)}
-.fb-head{font-weight:800;font-size:1.1rem}
-.feedback.good .fb-head{color:var(--ok)}
-.feedback.bad .fb-head{color:var(--bad)}
-.feedback ul{margin:6px 0;padding-inline-start:20px}
-.feedback li{margin:3px 0}
-.fb-ans{margin-top:6px;font-weight:700}
-.fb-ans .chem{font-size:1.2em}
-.fb-exp{margin-top:8px;font-size:.92rem;color:var(--muted);border-top:1px dashed var(--line);padding-top:8px}
-.swatch{width:14px;height:14px;border-radius:50%;display:inline-block;vertical-align:-2px;border:1px solid rgba(0,0,0,.25);margin-inline-end:4px}
-.progress{text-align:center;margin-top:12px;font-size:.88rem}
-.shake{animation:shake .35s}
-@keyframes shake{0%,100%{transform:none}20%{transform:translateX(-7px)}40%{transform:translateX(7px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
-@keyframes pop{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
-[hidden]{display:none!important}
-@media (max-width:420px){
-  .qbig{font-size:1.6rem}.qbig .chem{font-size:2rem}
-  .tile-in{padding:12px}
-  .tiles{gap:8px}
-}
-</style>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0f1226">
+<title>آزمون یون‌ها و رسوب‌ها</title>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
-<div class="app">
-  <header class="hero">
-    <div class="logo">X<sup>±</sup></div>
-    <div>
-      <h1>تمرین یون‌ها و رسوب‌ها</h1>
-      <p>سوال‌ها رندم و بی‌ترتیب میان؛ جوابتو بنویس و بررسی کن.</p>
-    </div>
-  </header>
+<div class="bg"></div>
+<main>
 
-  <!-- MENU -->
-  <section id="menu">
+  <section id="home" class="screen active">
+    <header class="hero">
+      <div class="logo">⚗️</div>
+      <h1>آزمون یون‌ها و رسوب‌ها</h1>
+      <p>اسم، فرمول، بار و رنگ رسوب‌ها را تصادفی تمرین کن</p>
+    </header>
+
     <div class="card">
-      <h2>آزمون یون‌ها و رسوب‌ها</h2>
-      <div class="muted small">انتخاب کن از کدوم بخش‌ها سوال بیاد:</div>
-      <div class="tiles" id="tiles">
-        <label class="tile"><input type="checkbox" value="pos"><span class="tile-in"><span class="sym">M<sup>n+</sup></span><b>یون تک‌اتمی مثبت</b><small id="cnt-pos"></small></span></label>
-        <label class="tile"><input type="checkbox" value="neg"><span class="tile-in"><span class="sym">X<sup>n−</sup></span><b>یون تک‌اتمی منفی</b><small id="cnt-neg"></small></span></label>
-        <label class="tile"><input type="checkbox" value="poly"><span class="tile-in"><span class="sym">SO<sub>4</sub><sup>2−</sup></span><b>یون چنداتمی</b><small id="cnt-poly"></small></span></label>
-        <label class="tile"><input type="checkbox" value="prec"><span class="tile-in"><span class="sym">AgCl↓</span><b>رسوب</b><small id="cnt-prec"></small></span></label>
+      <h2>آزمون تصادفی</h2>
+      <p class="hint">انتخاب کن از کدام‌ها بپرسم</p>
+      <div class="chips" id="quizChips">
+        <label class="chip"><input type="checkbox" value="cat" checked><span>یون تک‌اتمی مثبت</span></label>
+        <label class="chip"><input type="checkbox" value="an" checked><span>یون تک‌اتمی منفی</span></label>
+        <label class="chip"><input type="checkbox" value="poly" checked><span>یون چنداتمی</span></label>
+        <label class="chip"><input type="checkbox" value="prec" checked><span>رسوب‌ها</span></label>
       </div>
-      <button class="btn primary big" id="startMain">شروع آزمون</button>
+      <button class="btn primary wide" id="startQuiz">شروع آزمون</button>
     </div>
 
-    <div class="card comp-card">
-      <h2>ترکیب‌سازی</h2>
-      <div class="muted small">از یون‌های لیستت و فلزهای گروه ۱، ۲ و ۱۳ ترکیب ساخته می‌شه؛ یا فرمول رو می‌بینی و اسمشو می‌گی، یا اسم رو می‌بینی و فرمولشو می‌نویسی.</div>
-      <div class="examples">
-        <span class="ex"><span class="chem">Fe<sub>3</sub>N<sub>2</sub></span> ← آهن ۲ نیترید</span>
-        <span class="ex">آهن ۲ هیدروژن کربنات ← <span class="chem">Fe(HCO<sub>3</sub>)<sub>2</sub></span></span>
+    <div class="card">
+      <h2>ساخت ترکیب</h2>
+      <p class="hint">فرمول ← نام و نام ← فرمول</p>
+      <p class="sub">کاتیون‌ها</p>
+      <div class="chips" id="compCat">
+        <label class="chip"><input type="checkbox" value="g" checked><span>فلزات گروه ۱، ۲ و ۱۳</span></label>
+        <label class="chip"><input type="checkbox" value="tm" checked><span>فلزات چندبار (Fe, Cu, ...)</span></label>
+        <label class="chip"><input type="checkbox" value="nh4" checked><span>آمونیوم</span></label>
       </div>
-      <button class="btn teal big" id="startComp">شروع ترکیب‌سازی</button>
+      <p class="sub">آنیون‌ها</p>
+      <div class="chips" id="compAn">
+        <label class="chip"><input type="checkbox" value="mono" checked><span>تک‌اتمی</span></label>
+        <label class="chip"><input type="checkbox" value="poly" checked><span>چنداتمی</span></label>
+      </div>
+      <button class="btn primary wide" id="startComp">شروع ساخت ترکیب</button>
     </div>
+
+    <p class="foot">بدون نیاز به اینترنت · فقط سه فایل index.html, style.css, app.js</p>
   </section>
 
-  <!-- QUIZ -->
-  <section id="quiz" hidden>
-    <div class="bar">
-      <button class="btn ghost" id="backBtn">→ منو</button>
+  <section id="quiz" class="screen">
+    <div class="topbar">
+      <button class="btn ghost small" id="finish">پایان</button>
       <div class="stats">
-        <span class="st ok">✓ <b id="sOk">۰</b></span>
-        <span class="st bad">✗ <b id="sBad">۰</b></span>
-        <span class="st streak">🔥 <b id="sStreak">۰</b></span>
+        <span class="pill ok" id="stRight">۰ ✔</span>
+        <span class="pill" id="stTotal">۰ سؤال</span>
+        <span class="pill hot" id="stStreak">🔥 ۰</span>
       </div>
     </div>
-    <div class="qcard" id="qcard">
-      <span class="qtag" id="qtag"></span>
-      <div class="qprompt" id="qprompt"></div>
-      <div class="qbig" id="qbig"></div>
-      <form id="qform" autocomplete="off" novalidate>
-        <div id="fields"></div>
-        <div class="actions">
-          <button type="submit" class="btn primary" id="checkBtn">بررسی</button>
-          <button type="button" class="btn ghost" id="idkBtn">نمی‌دونم</button>
-          <button type="button" class="btn next" id="nextBtn" hidden>سوال بعدی ←</button>
-        </div>
-      </form>
-      <div id="feedback" class="feedback" hidden></div>
+    <div class="card q">
+      <div class="badge" id="qBadge"></div>
+      <div class="prompt" id="qPrompt"></div>
+      <form id="fields" onsubmit="return false"></form>
+      <div class="result hidden" id="result"></div>
+      <button class="btn primary wide" id="actBtn" type="button">بررسی</button>
     </div>
-    <div class="progress muted" id="progress"></div>
   </section>
-</div>
 
-<script>
-"use strict";
-/* ================= helpers ================= */
-const FA_D='۰۱۲۳۴۵۶۷۸۹', AR_D='٠١٢٣٤٥٦٧٨٩', SUB_D='₀₁₂₃₄₅₆₇₈₉', SUP_D='⁰¹²³⁴⁵⁶⁷⁸⁹';
-const fa = s => String(s).replace(/\d/g, d => FA_D[d]);
-const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-function enDigits(s){ return String(s==null?'':s).replace(/[۰-۹]/g,d=>FA_D.indexOf(d)).replace(/[٠-٩]/g,d=>AR_D.indexOf(d)); }
-function unscript(s){
-  return s.replace(/[₀-₉]/g,d=>SUB_D.indexOf(d))
-          .replace(/[⁰¹²³⁴⁵⁶⁷⁸⁹]/g,d=>SUP_D.indexOf(d))
-          .replace(/[⁺₊＋]/g,'+').replace(/[⁻₋−–—﹣－‐]/g,'-');
-}
-function gcd(a,b){ a=Math.abs(a); b=Math.abs(b); while(b){ [a,b]=[b,a%b]; } return a; }
-function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
-const pick = a => a[Math.floor(Math.random()*a.length)];
+  <section id="summary" class="screen">
+    <header class="hero">
+      <div class="logo">🏁</div>
+      <h1>نتیجه</h1>
+    </header>
+    <div class="card">
+      <div class="sumgrid">
+        <div><b id="sumScore">—</b><span>درست</span></div>
+        <div><b id="sumPct">—</b><span>درصد</span></div>
+        <div><b id="sumBest">—</b><span>بهترین پشت‌سرهم</span></div>
+      </div>
+      <h2>اشتباه‌ها</h2>
+      <ul class="missed" id="sumMissed"></ul>
+      <button class="btn primary wide" id="backHome">برگشت به صفحه اصلی</button>
+    </div>
+  </section>
 
-/* Persian name normalizer: آ/ا, ي/ی, ك/ک, ZWNJ & spaces, "یون", یوم/یم, Persian/English/roman numbers, "دو/سه" */
-function normName(s){
-  s = unscript(enDigits(s));
-  s = s.replace(/[يى]/g,'ی').replace(/ك/g,'ک').replace(/[آأإٱ]/g,'ا').replace(/ؤ/g,'و')
-       .replace(/ة/g,'ه').replace(/[ئء]/g,'').replace(/[\u064B-\u065F\u0670\u0640]/g,'');
-  s = s.replace(/III/gi,' 3 ').replace(/II/gi,' 2 ').replace(/I/gi,' 1 ');
-  const words = {'یک':'1','دو':'2','سه':'3'};
-  return s.split(/[\s\u200c\u200d\u200e\u200f\-_()\[\]{}+.,،:;؛«»"'*\/\\]+/)
-    .filter(t => t && t !== 'یون')
-    .map(t => words[t] || t.replace(/یوم/g,'یم').replace(/(.)\1+/g,'$1'))
-    .join('');
-}
-function normFormula(s){
-  return unscript(enDigits(s)).replace(/[\s\u200c-\u200f]/g,'').replace(/[\[{]/g,'(').replace(/[\]}]/g,')');
-}
-function parseCharge(s){
-  s = unscript(enDigits(s)).replace(/\s/g,'');
-  const m = s.match(/^([+-]?)(\d*)([+-]?)$/);
-  if(!m) return null;
-  const sg = m[1] || m[3];
-  if(!sg || (m[1] && m[3])) return null;
-  const n = m[2]==='' ? 1 : parseInt(m[2],10);
-  if(!n) return null;
-  return sg==='+' ? n : -n;
-}
-/* split a formula field that may also contain the charge (e.g. "SO4 2-", "OH-") */
-function splitFC(fRaw, cRaw, expected){
-  const raw = unscript(enDigits(fRaw)).trim();
-  let c = unscript(enDigits(cRaw)).replace(/\s/g,'');
-  let f;
-  const sp = raw.match(/^(.*\S)\s+([+-]?\d*[+-]?)$/);
-  if(sp && /[+-]/.test(sp[2])){ f = normFormula(sp[1]); if(!c) c = sp[2]; }
-  else{
-    f = normFormula(raw);
-    let found = false;
-    for(const e of expected){
-      if(f.length > e.length && f.startsWith(e) && parseCharge(f.slice(e.length)) !== null){
-        if(!c) c = f.slice(e.length); f = e; found = true; break;
-      }
-    }
-    if(!found){
-      const m = f.match(/^(.+?)(\d?[+-]+|[+-]\d?)$/);
-      if(m){ f = m[1]; if(!c) c = m[2]; }
-    }
-  }
-  return {f, c};
-}
-/* atom counter for diagnosing formulas */
-function parseCounts(f){
-  let i = 0;
-  const num = () => { let s=''; while(i<f.length && /\d/.test(f[i])) s+=f[i++]; return s?parseInt(s,10):1; };
-  function group(){
-    const m = {};
-    while(i < f.length){
-      const ch = f[i];
-      if(ch==='('){ i++; const sub=group(); if(f[i]!==')') throw 0; i++; const n=num(); for(const k in sub) m[k]=(m[k]||0)+sub[k]*n; }
-      else if(ch===')') return m;
-      else if(/[A-Z]/.test(ch)){ let el=ch; i++; while(i<f.length && /[a-z]/.test(f[i])) el+=f[i++]; const n=num(); m[el]=(m[el]||0)+n; }
-      else throw 0;
-    }
-    return m;
-  }
-  try{ const r=group(); return i===f.length ? r : null; }catch(e){ return null; }
-}
-function sameCounts(a,b){ const ka=Object.keys(a), kb=Object.keys(b); return ka.length===kb.length && ka.every(k=>a[k]===b[k]); }
-function multipleOf(a,b){ // a = k*b with integer k>1 ?
-  const ka=Object.keys(a), kb=Object.keys(b);
-  if(ka.length!==kb.length || !ka.every(k=>k in b)) return 0;
-  const k = a[ka[0]]/b[ka[0]];
-  return (k>1 && Number.isInteger(k) && ka.every(x=>a[x]===k*b[x])) ? k : 0;
-}
-
-/* ================= display ================= */
-const chargeTxt = c => (Math.abs(c)>1?Math.abs(c):'') + (c>0?'+':'−');
-const signed = n => `<span class="chem">${n>0?'+':'−'}${Math.abs(n)}</span>`;
-function chem(f, c){
-  return `<span class="chem">${esc(f).replace(/(\d+)/g,'<sub>$1</sub>')}${c?'<sup>'+chargeTxt(c)+'</sup>':''}</span>`;
-}
-
-/* ================= data ================= */
-function ion(sym,c,names,o={}){ return {sym,c,names:[].concat(names),variable:!!o.v,g:o.g||0,formulas:o.formulas||[sym]}; }
-const isPoly = io => (io.formulas[0].match(/[A-Z]/g)||[]).length > 1;
-const displayName = io => io.names[0] + (io.variable ? ' ' + fa(io.c) : '');
-const nameKeys = io => io.names.map(n => normName(n + (io.variable ? ' '+io.c : '')));
-
-const POS = [
-  ion('H',1,'هیدروژن'),
-  ion('Li',1,'لیتیم',{g:1}),
-  ion('Mg',2,'منیزیم',{g:2}),
-  ion('Ca',2,'کلسیم',{g:2}),
-  ion('Al',3,['آلومینیم','آلمینیم'],{g:13}),
-  ion('Ga',3,'گالیم',{g:13}),
-  ion('Sr',2,['استرانسیم','استرونسیم'],{g:2}),
-  ion('Cu',1,'مس',{v:1}), ion('Cu',2,'مس',{v:1}),
-  ion('Fe',2,'آهن',{v:1}), ion('Fe',3,'آهن',{v:1}),
-  ion('Cr',2,'کروم',{v:1}), ion('Cr',3,'کروم',{v:1}),
-  ion('V',2,'وانادیم',{v:1}), ion('V',3,'وانادیم',{v:1}),
-  ion('Mn',2,'منگنز',{v:1}), ion('Mn',3,'منگنز',{v:1}),
-];
-const NEG = [
-  ion('H',-1,'هیدرید'),
-  ion('F',-1,['فلوئورید','فلورید']),
-  ion('O',-2,'اکسید'),
-  ion('S',-2,'سولفید'),
-  ion('N',-3,'نیترید'),
-  ion('P',-3,'فسفید'),
-];
-const POLY = [
-  ion('OH',-1,'هیدروکسید'),
-  ion('HS',-1,['هیدروژن سولفید','بی سولفید']),
-  ion('CO3',-2,'کربنات'),
-  ion('SO4',-2,'سولفات'),
-  ion('SO3',-2,'سولفیت'),
-  ion('ClO4',-1,'پرکلرات'),
-  ion('NH4',1,'آمونیوم'),
-  ion('NO3',-1,'نیترات'),
-  ion('HCO3',-1,['هیدروژن کربنات','بی کربنات']),
-  ion('CN',-1,'سیانید'),
-  ion('CH3COO',-1,['استات','اتانوات'],{formulas:['CH3COO','CH3CO2']}),
-  ion('MnO4',-1,['پرمنگنات','پرمنگات']),
-  ion('Cr2O7',-2,['دی کرومات','دیکرومات']),
-];
-const EXTRA_CATS = [
-  ion('Na',1,'سدیم',{g:1}), ion('K',1,'پتاسیم',{g:1}), ion('Rb',1,'روبیدیم',{g:1}), ion('Cs',1,['سزیم','سسیم'],{g:1}),
-  ion('Be',2,['بریلیم','برلیم'],{g:2}), ion('Ba',2,'باریم',{g:2}),
-];
-const ALL_IONS = [...POS, ...NEG, ...POLY, ...EXTRA_CATS, ion('Cl',-1,'کلرید'), ion('PO4',-3,'فسفات'), ion('Ag',1,'نقره')];
-
-const COLORS = [
-  {k:'سفید',sw:'#f7f7f7'},{k:'سبز',sw:'#3fae4f'},{k:'قهوه‌ای',sw:'#7a4a28'},{k:'آجری',sw:'#b8472d'},
-  {k:'زرد',sw:'#f2c94c'},{k:'آبی',sw:'#3b82f6'},{k:'سیاه',sw:'#1f1f1f'},
-];
-const swatch = k => `<i class="swatch" style="background:${(COLORS.find(c=>c.k===k)||{}).sw}"></i>`;
-
-const PRECIPS = [
-  {f:'AgCl',     n:'نقره کلرید',        col:'سفید',    cat:ion('Ag',1,'نقره'),     an:ion('Cl',-1,'کلرید')},
-  {f:'Ca3(PO4)2',n:'کلسیم فسفات',       col:'سفید',    cat:ion('Ca',2,'کلسیم'),    an:ion('PO4',-3,'فسفات')},
-  {f:'BaSO4',    n:'باریم سولفات',      col:'سفید',    cat:ion('Ba',2,'باریم'),    an:ion('SO4',-2,'سولفات')},
-  {f:'Mg(OH)2',  n:'منیزیم هیدروکسید',  col:'سفید',    cat:ion('Mg',2,'منیزیم'),   an:ion('OH',-1,'هیدروکسید')},
-  {f:'Fe(OH)2',  n:'آهن ۲ هیدروکسید',   col:'سبز'},
-  {f:'FeO',      n:'آهن ۲ اکسید',       col:'سبز'},
-  {f:'Fe2O3',    n:'آهن ۳ اکسید',       col:'قهوه‌ای'},
-  {f:'Fe(OH)3',  n:'آهن ۳ هیدروکسید',   col:'آجری'},
-];
-
-const COMP_CATS = [...POS.filter(x=>x.sym!=='H'), ...EXTRA_CATS, POLY.find(x=>x.sym==='NH4')];
-const COMP_ANS  = [...NEG, ...POLY.filter(x=>x.c<0)];
-
-/* ================= shared diagnostics ================= */
-const ionsByFormula = f => ALL_IONS.filter(x => x.formulas.includes(f));
-const ionByName = u => ALL_IONS.find(x => nameKeys(x).includes(u));
-function uniqueNames(list){ return [...new Set(list.map(x=>'«'+displayName(x)+'»'))].join(' یا '); }
-
-function diagFormula(f, acc){
-  if(!f) return 'فرمول رو ننوشتی.';
-  if(acc.some(x=>x.toLowerCase()===f.toLowerCase())) return 'حروف بزرگ و کوچیک رو درست بنویس (حرف اول نماد عنصر بزرگ، حرف دومش کوچیک).';
-  const np = s => s.replace(/[()]/g,'');
-  if(acc.some(x=>np(x)===np(f) && x!==f)) return 'پرانتز رو درست نذاشتی؛ وقتی از یه یون چنداتمی بیشتر از یکی داریم، باید بره داخل پرانتز و عدد بیاد بیرون پرانتز.';
-  const uc = parseCounts(f);
-  if(!uc) return 'فرمول درست نوشته نشده (نماد عنصرها یا پرانتزها ایراد دارن).';
-  for(const x of acc){
-    const cc = parseCounts(x);
-    if(sameCounts(uc,cc)) return 'اتم‌ها درستن ولی ترتیب نوشتن درست نیست؛ اول کاتیون، بعد آنیون.';
-    if(multipleOf(uc,cc)) return 'نسبت درسته ولی باید ساده‌ترین نسبت رو بنویسی.';
-  }
-  return null;
-}
-
-/* ================= question builders ================= */
-const F = {
-  name:   (ph='مثلاً: آهن ۲') => ({k:'name',kind:'text',label:'اسم',ph}),
-  formula:(ph='مثلاً: SO4')   => ({k:'formula',kind:'formula',label:'فرمول',ph}),
-  charge: () => ({k:'charge',kind:'charge',label:'بار'}),
-  color:  () => ({k:'color',kind:'color',label:'رنگ'}),
-  mixed:  () => ({k:'ion',kind:'mixed',label:'یون (اسم یا فرمول)',ph:'مثلاً: سولفات یا SO4 2-'}),
-};
-
-function ionQ(io, type, label){
-  const main = chem(io.formulas[0], io.c);
-  const answer = `${main} &nbsp;—&nbsp; یون ${displayName(io)}`;
-  if(type==='A') return {
-    tag: label + ' • اسم ← فرمول و بار',
-    prompt: 'فرمول و بار این یون رو بنویس:',
-    big: `یون ${displayName(io)}`,
-    fields: [F.formula(), F.charge()],
-    check(a){
-      const {f,c} = splitFC(a.formula, a.charge, io.formulas);
-      const fOk = io.formulas.includes(f);
-      const cv = parseCharge(c);
-      const cOk = cv === io.c;
-      const msgs = [];
-      if(!fOk){
-        if(!f) msgs.push('فرمول رو ننوشتی.');
-        else if(io.formulas.some(x=>x.toLowerCase()===f.toLowerCase())) msgs.push(`حروف بزرگ و کوچیک رو درست بنویس: ${chem(io.formulas[0])}`);
-        else{
-          const others = ionsByFormula(f);
-          msgs.push(others.length ? `${chem(f)} فرمولِ ${uniqueNames(others)} هست، نه «${displayName(io)}».` : 'فرمول اشتباهه.');
-        }
-      }
-      if(!cOk){
-        if(!c) msgs.push('بار رو ننوشتی.');
-        else if(cv===null) msgs.push('بار رو درست وارد نکردی؛ این‌طوری بنویس: <span class="chem">2+</span> یا <span class="chem">3-</span>');
-        else if(Math.sign(cv)!==Math.sign(io.c)) msgs.push(`علامت بار اشتباهه؛ این یون ${io.c>0?'مثبت (کاتیون)':'منفی (آنیون)'} هست.`);
-        else{
-          let m = `اندازه‌ی بار اشتباهه؛ بارش <span class="chem">${chargeTxt(io.c)}</span> هست نه <span class="chem">${chargeTxt(cv)}</span>.`;
-          if(fOk){ const o = ALL_IONS.find(x=>x.formulas.includes(f) && x.c===cv); if(o) m += ` (${chem(f,cv)} یعنی یون «${displayName(o)}»)`; }
-          msgs.push(m);
-        }
-      }
-      return {ok:fOk&&cOk, marks:{formula:fOk, charge:cOk}, msgs, answer};
-    }
-  };
-  return {
-    tag: label + ' • فرمول ← اسم',
-    prompt: 'اسم این یون چیه؟',
-    big: main,
-    fields: [F.name(io.variable ? 'مثلاً: آهن ۲' : 'اسم یون')],
-    check(a){
-      const u = normName(a.name);
-      const ok = nameKeys(io).includes(u);
-      const msgs = [];
-      if(!ok){
-        const baseKeys = io.names.map(normName);
-        const m = u.match(/^(.*?)(\d+)$/);
-        if(!u) msgs.push('اسم رو ننوشتی.');
-        else if(io.variable && baseKeys.includes(u)) msgs.push(`باید عدد بار رو هم بگی، چون ${io.names[0]} چند جور یون داره؛ ${main} می‌شه «${displayName(io)}».`);
-        else if(io.variable && m && baseKeys.includes(m[1])) msgs.push(`عددش اشتباهه؛ بار این یون <span class="chem">${chargeTxt(io.c)}</span> هست پس می‌شه «${displayName(io)}».`);
-        else{
-          const o = ionByName(u);
-          msgs.push(o ? `«${esc(a.name.trim())}» اسمِ ${chem(o.formulas[0],o.c)} هست، نه ${main}.` : 'اسم اشتباهه.');
-        }
-      }
-      return {ok, marks:{name:ok}, msgs, answer};
-    }
-  };
-}
-
-function precSummary(p){ return `${chem(p.f)} &nbsp;—&nbsp; ${p.n} &nbsp;—&nbsp; ${swatch(p.col)}${p.col}`; }
-function checkColor(p, color, msgs){
-  const ok = color === p.col;
-  if(!ok) msgs.push(color ? `رنگش «${p.col}» هست، نه «${color}».` : 'رنگ رو انتخاب نکردی.');
-  return ok;
-}
-function precQ(p, type){
-  const answer = precSummary(p);
-  if(type==='F') return {
-    tag:'رسوب • فرمول ← اسم و رنگ', prompt:'اسم و رنگ این رسوب چیه؟', big: chem(p.f),
-    fields:[F.name('مثلاً: نقره کلرید'), F.color()],
-    check(a){
-      const msgs=[]; const u=normName(a.name); const nOk = u===normName(p.n);
-      if(!nOk){
-        if(!u) msgs.push('اسم رو ننوشتی.');
-        else{ const o = PRECIPS.find(x=>normName(x.n)===u); msgs.push(o ? `«${esc(a.name.trim())}» اسمِ ${chem(o.f)} هست.` : 'اسم اشتباهه.'); }
-      }
-      const cOk = checkColor(p, a.color, msgs);
-      return {ok:nOk&&cOk, marks:{name:nOk,color:cOk}, msgs, answer};
-    }
-  };
-  if(type==='N') return {
-    tag:'رسوب • اسم ← فرمول و رنگ', prompt:'فرمول و رنگ این رسوب چیه؟', big: p.n,
-    fields:[F.formula('مثلاً: AgCl'), F.color()],
-    check(a){
-      const msgs=[]; const f=normFormula(a.formula); const fOk = f===p.f;
-      if(!fOk){
-        const o = PRECIPS.find(x=>x.f===f);
-        msgs.push(o ? `${chem(f)} فرمولِ «${o.n}» هست.` : (diagFormula(f,[p.f]) || 'فرمول اشتباهه.'));
-      }
-      const cOk = checkColor(p, a.color, msgs);
-      return {ok:fOk&&cOk, marks:{formula:fOk,color:cOk}, msgs, answer};
-    }
-  };
-  if(type==='C') return {
-    tag:'رسوب • رنگ', prompt:'رنگ این رسوب چیه؟',
-    big: `${chem(p.f)}<span class="sub-line">${p.n}</span>`,
-    fields:[F.color()],
-    check(a){ const msgs=[]; const ok=checkColor(p,a.color,msgs); return {ok, marks:{color:ok}, msgs, answer}; }
-  };
-  // partner question: cation → which anion
-  const io = p.an;
-  return {
-    tag:'رسوب • با چی رسوب می‌ده؟', prompt:'این یون با کدوم یون (طبق لیستت) رسوب می‌ده؟',
-    big: `${chem(p.cat.sym,p.cat.c)}<span class="sub-line">یون ${p.cat.names[0]}</span>`,
-    fields:[F.mixed()],
-    check(a){
-      const t=(a.ion||'').trim(); const msgs=[]; let ok=false;
-      if(!t) msgs.push('جوابی ننوشتی.');
-      else if(normName(t)===normName(io.names[0])) ok=true;
-      else{
-        const {f,c} = splitFC(t,'',[io.sym]);
-        if(f===io.sym){
-          if(!c) ok=true;
-          else if(parseCharge(c)===io.c) ok=true;
-          else msgs.push(`یون رو درست گفتی ولی بارش <span class="chem">${chargeTxt(io.c)}</span> هست.`);
-        }
-        else if(f.toLowerCase()===io.sym.toLowerCase()) msgs.push('حروف بزرگ و کوچیک فرمول رو درست بنویس.');
-        else msgs.push('نه، با این یون رسوب نمی‌ده (طبق لیستت).');
-      }
-      return {ok, marks:{ion:ok}, msgs,
-        answer:`${chem(io.sym,io.c)} (${io.names[0]}) &nbsp;←&nbsp; رسوب: ${precSummary(p)}`};
-    }
-  };
-}
-
-/* ---------- compounds ---------- */
-function compData(cat, an){
-  const g = gcd(cat.c, an.c), nc = -an.c/g, na = cat.c/g;
-  const part = (f,n,poly) => n===1 ? f : (poly ? '('+f+')'+n : f+n);
-  const forms = [];
-  cat.formulas.forEach(cf => an.formulas.forEach(af => forms.push(part(cf,nc,isPoly(cat)) + part(af,na,isPoly(an)))));
-  const keys = new Set();
-  cat.names.forEach(cn => an.names.forEach(anm => {
-    keys.add(normName(cn + (cat.variable ? ' '+cat.c : '') + ' ' + anm));
-    if(!cat.variable) keys.add(normName(cn + ' ' + cat.c + ' ' + anm));
-  }));
-  return {nc, na, forms, keys, name: displayName(cat) + ' ' + an.names[0]};
-}
-function compAllowed(cat, an){
-  if(an.sym==='H' && !(cat.g===1 || cat.g===2)) return false;
-  if(cat.sym==='NH4' && ['H','N','P','O'].includes(an.sym)) return false;
-  if(cat.sym==='Mn' && an.sym==='MnO4') return false;
-  if(cat.sym==='Cr' && an.sym==='Cr2O7') return false;
-  return true;
-}
-function compQ(cat, an, type){
-  const d = compData(cat, an);
-  const cf = cat.formulas[0], af = an.formulas[0];
-  const answer = `${chem(d.forms[0])} &nbsp;—&nbsp; ${d.name}`;
-  const balance = `${chem(cf,cat.c)} و ${chem(af,an.c)}: برای این‌که جمع بارها صفر بشه، ${fa(d.nc)} تا ${chem(cf)} (${signed(d.nc*cat.c)}) و ${fa(d.na)} تا ${chem(af)} (${signed(d.na*an.c)}) لازمه.`
-    + ((isPoly(cat)&&d.nc>1)||(isPoly(an)&&d.na>1) ? ' یون چنداتمی‌ای که بیشتر از یکیه می‌ره داخل پرانتز.' : '');
-  if(type==='F'){
-    const explain = cat.variable
-      ? `جمع بار آنیون‌ها: <span class="chem">${d.na} × (${chargeTxt(an.c)}) =</span> ${signed(d.na*an.c)}؛ پس ${fa(d.nc)} تا ${chem(cf)} باید روی هم ${signed(-d.na*an.c)} باشن ← بار هر ${chem(cf)} می‌شه <span class="chem">${chargeTxt(cat.c)}</span>، یعنی «${displayName(cat)}».`
-      : `${chem(cf,cat.c)} فقط یه نوع بار داره، پس اسمش بدون عدد میاد: اسم کاتیون + اسم آنیون.`;
-    return {
-      tag:'ترکیب‌سازی • فرمول ← اسم', prompt:'اسم این ترکیب چیه؟', big: chem(d.forms[0]),
-      fields:[F.name('مثلاً: آهن ۲ نیترید')],
-      check(a){
-        const u = normName(a.name); const ok = d.keys.has(u); const msgs=[];
-        if(!ok){
-          if(!u) msgs.push('اسم رو ننوشتی.');
-          else{
-            const anKey = nameKeys(an).find(k => u.endsWith(k));
-            const catKey = [...nameKeys(cat), ...cat.names.map(n=>normName(n+' '+cat.c))].find(k => u.startsWith(k));
-            if(anKey){
-              const cp = u.slice(0, u.length - anKey.length);
-              const baseKeys = cat.names.map(normName);
-              const m = cp.match(/^(.*?)(\d+)$/);
-              if(cat.variable && baseKeys.includes(cp)) msgs.push(`عدد بار ${cat.names[0]} رو ننوشتی؛ ${cat.names[0]} چند جور یون داره پس باید بگی کدومه.`);
-              else if(cat.variable && m && baseKeys.includes(m[1])) msgs.push(`عدد بار ${cat.names[0]} اشتباهه؛ اینجا ${cat.names[0]} <span class="chem">${chargeTxt(cat.c)}</span> هست نه <span class="chem">${m[2]}+</span>.`);
-              else{ const o = ionByName(cp); msgs.push(o && o.c>0 ? `«${displayName(o)}» یعنی ${chem(o.formulas[0],o.c)}، ولی کاتیون اینجا ${chem(cf,cat.c)} هست.` : 'اسم کاتیون (بخش اول) اشتباهه.'); }
-            } else if(catKey){
-              const o = ionByName(u.slice(catKey.length));
-              msgs.push(o ? `«${o.names[0]}» یعنی ${chem(o.formulas[0],o.c)}، ولی آنیون اینجا ${chem(af,an.c)} یعنی «${an.names[0]}» هست.` : 'اسم آنیون (بخش دوم) اشتباهه.');
-            } else msgs.push('اسم اشتباهه.');
-          }
-        }
-        return {ok, marks:{name:ok}, msgs, answer, explain: ok?'':explain};
-      }
-    };
-  }
-  return {
-    tag:'ترکیب‌سازی • اسم ← فرمول', prompt:'فرمول این ترکیب رو بنویس:', big: d.name,
-    fields:[F.formula('مثلاً: Fe(HCO3)2')],
-    check(a){
-      const f = normFormula(a.formula).replace(/(\d?[+-]+|[+-]\d?)$/,'');
-      const ok = d.forms.includes(f); const msgs=[];
-      if(!ok){
-        const other = COMP_CATS.find(x => x.sym===cat.sym && x.c!==cat.c && compData(x,an).forms.includes(f));
-        if(other) msgs.push(`${chem(f)} فرمولِ «${compData(other,an).name}» هست؛ اینجا ${chem(cf,cat.c)} داریم.`);
-        else msgs.push(diagFormula(f, d.forms) || 'تعداد یون‌ها (زیروندها) درست نیست.');
-      }
-      return {ok, marks:{formula:ok}, msgs, answer, explain: ok?'':balance};
-    }
-  };
-}
-
-/* ================= decks ================= */
-const LABELS = {pos:'یون تک‌اتمی مثبت', neg:'یون تک‌اتمی منفی', poly:'یون چنداتمی', prec:'رسوب'};
-function mainDeck(cats){
-  const out = [];
-  const addIons = (list, ck) => list.forEach((io,i) => ['A','B'].forEach(t => out.push({key:ck+i+t, make:()=>ionQ(io,t,LABELS[ck])})));
-  if(cats.includes('pos'))  addIons(POS,'pos');
-  if(cats.includes('neg'))  addIons(NEG,'neg');
-  if(cats.includes('poly')) addIons(POLY,'poly');
-  if(cats.includes('prec')) PRECIPS.forEach((p,i) => {
-    ['F','N','C'].forEach(t => out.push({key:'r'+i+t, make:()=>precQ(p,t)}));
-    if(p.cat) out.push({key:'r'+i+'P', make:()=>precQ(p,'P')});
-  });
-  return out;
-}
-function compDeck(){
-  const out = [];
-  COMP_CATS.forEach((cat,i) => COMP_ANS.forEach((an,j) => {
-    if(!compAllowed(cat,an)) return;
-    ['F','N'].forEach(t => out.push({key:`c${i}-${j}${t}`, make:()=>compQ(cat,an,t)}));
-  }));
-  return out;
-}
-
-/* ================= UI ================= */
-const S = {mode:null, cats:[], deck:[], idx:0, round:1, ok:0, bad:0, streak:0, q:null, answered:false, color:null, lastKey:null};
-
-if(typeof document !== 'undefined') init();
-
-function init(){
-  const $ = s => document.querySelector(s);
-  $('#cnt-pos').textContent  = fa(POS.length)+' یون';
-  $('#cnt-neg').textContent  = fa(NEG.length)+' یون';
-  $('#cnt-poly').textContent = fa(POLY.length)+' یون';
-  $('#cnt-prec').textContent = fa(PRECIPS.length)+' رسوب';
-
-  const boxes = [...document.querySelectorAll('#tiles input')];
-  let saved = ['pos','neg','poly','prec'];
-  try{ const v = JSON.parse(localStorage.getItem('chemq.cats')); if(Array.isArray(v)) saved = v; }catch(e){}
-  boxes.forEach(b => b.checked = saved.includes(b.value));
-  const syncStart = () => { $('#startMain').disabled = !boxes.some(b=>b.checked); };
-  boxes.forEach(b => b.addEventListener('change', () => {
-    syncStart();
-    try{ localStorage.setItem('chemq.cats', JSON.stringify(boxes.filter(x=>x.checked).map(x=>x.value))); }catch(e){}
-  }));
-  syncStart();
-
-  $('#startMain').onclick = () => start('main', boxes.filter(b=>b.checked).map(b=>b.value));
-  $('#startComp').onclick = () => start('comp', []);
-  $('#backBtn').onclick = () => { $('#quiz').hidden = true; $('#menu').hidden = false; window.scrollTo(0,0); };
-  $('#nextBtn').onclick = nextQ;
-  $('#idkBtn').onclick = () => { if(!S.answered) doCheck(true); };
-  $('#qform').addEventListener('submit', e => { e.preventDefault(); S.answered ? nextQ() : doCheck(false); });
-  document.addEventListener('keydown', e => {
-    if(e.key==='Enter' && S.answered && !$('#quiz').hidden && !(document.activeElement && document.activeElement.tagName==='BUTTON')){
-      e.preventDefault(); nextQ();
-    }
-  });
-
-  function start(mode, cats){
-    Object.assign(S, {mode, cats, ok:0, bad:0, streak:0, round:1, lastKey:null});
-    newDeck();
-    $('#menu').hidden = true; $('#quiz').hidden = false;
-    updateStats(); nextQ();
-  }
-  function newDeck(){
-    S.deck = shuffle(S.mode==='comp' ? compDeck() : mainDeck(S.cats));
-    if(S.deck.length>1 && S.deck[0].key===S.lastKey) [S.deck[0],S.deck[1]] = [S.deck[1],S.deck[0]];
-    S.idx = 0;
-  }
-  function nextQ(){
-    if(S.idx >= S.deck.length){ S.round++; newDeck(); }
-    const item = S.deck[S.idx++];
-    S.lastKey = item.key; S.q = item.make(); S.answered = false; S.color = null;
-    render();
-  }
-  function fieldHTML(fd){
-    if(fd.kind==='color') return `<div class="field" data-k="color"><label>${fd.label}</label><div class="chips">${
-      COLORS.map(c=>`<button type="button" class="chip color" data-color="${c.k}"><i style="background:${c.sw}"></i>${c.k}</button>`).join('')}</div></div>`;
-    if(fd.kind==='charge') return `<div class="field" data-k="charge"><label>${fd.label}</label><div class="charge-row">
-      <input data-k="charge" class="ltr" type="text" placeholder="2+" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
-      <div class="chips">${[['3-','3−'],['2-','2−'],['-','1−'],['+','1+'],['2+','2+'],['3+','3+']].map(([v,l])=>`<button type="button" class="chip ch" data-v="${v}">${l}</button>`).join('')}</div></div></div>`;
-    const ltr = fd.kind==='formula';
-    const dir = ltr ? 'class="ltr"' : (fd.kind==='mixed' ? 'dir="auto"' : 'dir="rtl"');
-    return `<div class="field" data-k="${fd.k}"><label>${fd.label}</label>
-      <input data-k="${fd.k}" type="text" ${dir} placeholder="${esc(fd.ph||'')}" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
-      ${ltr?'<div class="preview"></div>':''}</div>`;
-  }
-  function render(){
-    const q = S.q;
-    $('#qcard').classList.remove('good','badc','shake');
-    $('#qtag').textContent = q.tag;
-    $('#qprompt').textContent = q.prompt;
-    $('#qbig').innerHTML = q.big;
-    $('#fields').innerHTML = q.fields.map(fieldHTML).join('');
-    $('#feedback').hidden = true;
-    $('#checkBtn').hidden = false; $('#idkBtn').hidden = false; $('#nextBtn').hidden = true;
-    $('#progress').textContent = `دور ${fa(S.round)} • سوال ${fa(S.idx)} از ${fa(S.deck.length)}`;
-
-    const inputs = [...document.querySelectorAll('#fields input')];
-    inputs.forEach((inp, i) => {
-      inp.addEventListener('keydown', e => {
-        if(e.key==='Enter'){ e.preventDefault(); if(i < inputs.length-1) inputs[i+1].focus(); else if(!S.answered) doCheck(false); }
-      });
-      const pv = inp.parentElement.querySelector('.preview');
-      if(pv) inp.addEventListener('input', () => { const f = normFormula(inp.value); pv.innerHTML = f ? chem(f) : ''; });
-    });
-    document.querySelectorAll('#fields .chip.ch').forEach(ch => ch.onclick = () => {
-      const inp = document.querySelector('#fields input[data-k="charge"]'); inp.value = ch.dataset.v;
-      document.querySelectorAll('#fields .chip.ch').forEach(x=>x.classList.toggle('on', x===ch));
-    });
-    const chInp = document.querySelector('#fields input[data-k="charge"]');
-    if(chInp) chInp.addEventListener('input', () => document.querySelectorAll('#fields .chip.ch').forEach(x=>x.classList.remove('on')));
-    document.querySelectorAll('#fields .chip.color').forEach(ch => ch.onclick = () => {
-      if(S.answered) return;
-      S.color = ch.dataset.color;
-      document.querySelectorAll('#fields .chip.color').forEach(x=>x.classList.toggle('on', x===ch));
-    });
-    if(inputs[0] && matchMedia('(pointer:fine)').matches) inputs[0].focus();
-  }
-  function doCheck(idk){
-    const a = {color: idk ? null : S.color};
-    document.querySelectorAll('#fields input').forEach(inp => a[inp.dataset.k] = idk ? '' : inp.value);
-    const r = S.q.check(a);
-    S.answered = true;
-    if(r.ok){ S.ok++; S.streak++; } else { S.bad++; S.streak = 0; }
-    updateStats();
-    for(const k in r.marks){ const fld = document.querySelector(`#fields .field[data-k="${k}"]`); if(fld) fld.classList.add(r.marks[k]?'good':'bad'); }
-    document.querySelectorAll('#fields input, #fields .chip').forEach(el => el.disabled = true);
-    const card = $('#qcard');
-    card.classList.add(r.ok ? 'good' : 'badc');
-    if(!r.ok){ void card.offsetWidth; card.classList.add('shake'); }
-    const fb = $('#feedback');
-    fb.className = 'feedback ' + (r.ok ? 'good' : 'bad');
-    const head = r.ok ? pick(['درسته! 👏','آفرین، درسته!','عالی، درسته! ✨','دقیقاً همینه! ✓'])
-                      : (idk ? 'اشکال نداره، اینو یاد بگیر:' : 'غلطه ✗');
-    fb.innerHTML = `<div class="fb-head">${head}</div>`
-      + (!r.ok && !idk && r.msgs.length ? `<ul>${r.msgs.map(m=>`<li>${m}</li>`).join('')}</ul>` : '')
-      + `<div class="fb-ans">${r.ok?'':'جواب درست: '}${r.answer}</div>`
-      + (r.explain ? `<div class="fb-exp">${r.explain}</div>` : '');
-    fb.hidden = false;
-    $('#checkBtn').hidden = true; $('#idkBtn').hidden = true; $('#nextBtn').hidden = false;
-    $('#nextBtn').focus({preventScroll:true});
-    if(fb.getBoundingClientRect().bottom > innerHeight) fb.scrollIntoView({behavior:'smooth', block:'nearest'});
-  }
-  function updateStats(){
-    $('#sOk').textContent = fa(S.ok); $('#sBad').textContent = fa(S.bad); $('#sStreak').textContent = fa(S.streak);
-  }
-}
-if(typeof module !== 'undefined') module.exports = {normName,normFormula,splitFC,parseCharge,ionQ,precQ,compQ,compData,POS,NEG,POLY,PRECIPS,COMP_CATS,COMP_ANS,mainDeck,compDeck};
-</script>
+</main>
+<script src="app.js"></script>
 </body>
 </html>
