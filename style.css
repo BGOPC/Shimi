@@ -1,19 +1,20 @@
 :root{
   color-scheme:dark;
-  --bg:#131119;
-  --card:#241f2c;
-  --card-alt:#2d2638;
-  --bd:#494250;
-  --inp:#1d1b24;
-  --tx:#f2edf8;
-  --mut:#c2bacb;
-  --acc:#ff0094;
-  --acc-hover:#ff38ad;
-  --acc2:#00e0ff;
-  --ok:#5cdb8c;
-  --bad:#ff5973;
-  --hot:#ffb82e;
-  --on-acc:#0e0d14;
+  --bg:#24273a;
+  --card:#363a4f;
+  --card-alt:#494d64;
+  --bd:#494d64;
+  --inp:#1e2030;
+  --tx:#ffffff;
+  --mut:#ffffff;
+  --acc:#8839ef;
+  --acc-fg:#c6a0f6;
+  --acc-hover:#9a55f2;
+  --acc2:#91d7e3;
+  --ok:#a6da95;
+  --bad:#ed8796;
+  --hot:#eed49f;
+  --on-acc:#eff1f5;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0}
@@ -32,7 +33,7 @@ main{max-width:640px;margin:0 auto;padding:max(18px,env(safe-area-inset-top)) 16
 
 .hero{text-align:center;margin:18px 0 22px}
 .logo{font-size:3rem}
-h1{margin:.2rem 0;font-size:1.7rem;font-weight:800;color:var(--acc)}
+h1{margin:.2rem 0;font-size:1.7rem;font-weight:800;color:var(--acc-fg)}
 .hero p{margin:0;color:var(--mut)}
 h2{margin:0 0 4px;font-size:1.15rem}
 .hint{margin:0 0 14px;color:var(--mut);font-size:.9rem}
@@ -56,7 +57,7 @@ h2{margin:0 0 4px;font-size:1.15rem}
   background:var(--acc);box-shadow:none;
 }
 .chip input:checked+span::before{content:"✓ ";font-weight:800}
-.chip input:focus-visible+span{outline:3px solid var(--acc);outline-offset:2px}
+.chip input:focus-visible+span{outline:3px solid var(--acc-fg);outline-offset:2px}
 
 .btn{
   font:inherit;font-weight:700;border:0;border-radius:8px;padding:14px 22px;cursor:pointer;
@@ -79,7 +80,7 @@ h2{margin:0 0 4px;font-size:1.15rem}
 .q{padding:22px}
 .badge{
   display:inline-block;padding:3px 12px;border-radius:8px;font-size:.78rem;font-weight:700;
-  color:var(--acc);background:rgba(255,0,148,.06);border:1px solid rgba(255,0,148,.55);margin-bottom:10px;
+  color:var(--acc-fg);background:rgba(198,160,246,.06);border:1px solid rgba(198,160,246,.55);margin-bottom:10px;
 }
 .prompt{font-size:1.2rem;font-weight:600}
 .big{font-size:2.3rem;text-align:center;margin:14px 0 4px;font-weight:600}
@@ -94,24 +95,24 @@ sub,sup{font-size:.62em;line-height:0}
 .charge-option:active{transform:scale(.96)}
 .charge-option:hover{border-color:var(--acc)}
 .charge-option[aria-pressed="true"]{color:var(--on-acc);border-color:var(--acc);background:var(--acc);box-shadow:none}
-.charge-option:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+.charge-option:focus-visible{outline:3px solid var(--acc-fg);outline-offset:2px}
 .charge-option:disabled{opacity:.5;cursor:not-allowed}
 input.in{
   width:100%;font:inherit;font-size:1.25rem;padding:14px 16px;border-radius:8px;
   border:1px solid var(--bd);background:var(--inp);color:var(--tx);outline:none;transition:.2s;
 }
-input.in:focus{border-color:var(--acc);box-shadow:0 0 0 3px rgba(255,0,148,.18)}
+input.in:focus{border-color:var(--acc);box-shadow:0 0 0 3px rgba(198,160,246,.18)}
 input.ltr{direction:ltr;text-align:left;font-family:ui-monospace,Consolas,"SF Mono",monospace}
 input.rtl{direction:rtl;text-align:right}
 .fb{display:block;min-height:1.3em;margin-top:5px;font-size:.88rem}
-.fld.ok input{border-color:var(--ok);background:rgba(92,219,140,.12);animation:pop .35s}
+.fld.ok input{border-color:var(--ok);background:rgba(166,218,149,.12);animation:pop .35s}
 .fld.ok .fb{color:var(--ok)}
-.fld.bad input{border-color:var(--bad);background:rgba(255,89,115,.12);animation:shake .4s}
+.fld.bad input{border-color:var(--bad);background:rgba(237,135,150,.12);animation:shake .4s}
 .fld.bad .fb{color:var(--bad)}
 
 .result{margin:18px 0 14px;padding:14px 16px;border-radius:8px;border:1px solid;animation:fade .3s}
-.result.ok{background:rgba(92,219,140,.10);border-color:rgba(92,219,140,.55)}
-.result.bad{background:rgba(255,89,115,.10);border-color:rgba(255,89,115,.55)}
+.result.ok{background:rgba(166,218,149,.10);border-color:rgba(166,218,149,.55)}
+.result.bad{background:rgba(237,135,150,.10);border-color:rgba(237,135,150,.55)}
 .rt{font-weight:800;font-size:1.15rem;margin-bottom:4px}
 .result.ok .rt{color:var(--ok)}
 .result.bad .rt{color:var(--bad)}

@@ -45,6 +45,7 @@ const fHtml = f => `<span class="chem">${fmt(f)}</span>`;
 const ionHtml = i => `<span class="chem">${fmt(i.f)}<sup>${chStr(i.c)}</sup></span>`;
 const gcd = (a, b) => b ? gcd(b, a % b) : a;
 const rnd = n => Math.floor(Math.random() * n);
+const dir = () => Math.random() < 0.6 ? "n2f" : "f2n";
 
 const mk = (kind, f, c, n, extra) => Object.assign({ kind, f, c, n, fa: [f] }, extra || {});
 const TM = (f, base, c) => mk("cat", f, c, [base + " " + toFa(c)], { base, tm: true });
@@ -100,6 +101,7 @@ const pick = (arr, f, c) => arr.find(x => x.f === f && x.c === c);
 const Ag = mk("cat", "Ag", 1, ["نقره"]);
 const Ba = mk("cat", "Ba", 2, ["باریم"]);
 const Cl = mk("an", "Cl", -1, ["کلرید"]);
+const NM = [Cl, mk("an", "Br", -1, ["برمید"]), mk("an", "I", -1, ["یدید"]), mk("an", "Se", -2, ["سلنید"])];
 const PO4 = mk("poly", "PO4", -3, ["فسفات"]);
 const OH = pick(POLY, "OH", -1), SO4 = pick(POLY, "SO4", -2), O2 = pick(ANS, "O", -2);
 const Mg = pick(CATS, "Mg", 2), Ca = pick(CATS, "Ca", 2), Fe2 = pick(CATS, "Fe", 2), Fe3 = pick(CATS, "Fe", 3);
@@ -329,7 +331,7 @@ const buildBag = () => {
     if (c.cat) ions.push(...CATS);
     if (c.an) ions.push(...ANS);
     if (c.poly) ions.push(...POLY);
-    ions.forEach(i => ["n2f", "f2n"].forEach(d => a.push({ k: "ion", i, d })));
+    ions.forEach(i => a.push({ k: "ion", i, d: dir() }));
     if (c.prec) PREC.forEach(p => {
       ["p1", "p2", "p3"].forEach(t => a.push({ k: "prec", p, t }));
       if (!p.fe) a.push({ k: "prec", p, t: "p4" });
@@ -341,8 +343,9 @@ const buildBag = () => {
     if (c.nh4) cs.push(pick(POLY, "NH4", 1));
     const as = [];
     if (c.mono) as.push(...ANS);
+    if (c.nm) as.push(...NM);
     if (c.poly) as.push(...POLY.filter(x => x.c < 0));
-    cs.forEach(ca => as.forEach(an => ["n2f", "f2n"].forEach(d => a.push({ k: "comp", ca, an, d }))));
+    cs.forEach(ca => as.forEach(an => a.push({ k: "comp", ca, an, d: dir() })));
   }
   return shuffle(a);
 };
