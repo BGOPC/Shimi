@@ -249,7 +249,7 @@ const chkCompN = (inp, ca, an) => {
 };
 
 const FD = (id, label, ph, dir) => ({ id, label, ph, dir });
-const fF = ph => FD("f", "فرمول", ph || "مثلاً Ca3(PO4)2", "ltr");
+const fF = ph => FD("f", "فرمول", ph || "مثلاً FeO", "ltr");
 const fC = () => Object.assign(FD("c", "بار", "مثلاً 2+ یا 1−", "ltr"), { charge: true });
 const fN = l => FD("n", l || "نام", "به فارسی", "rtl");
 const fK = () => FD("k", "رنگ", "مثلاً سفید", "rtl");
