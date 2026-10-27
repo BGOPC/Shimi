@@ -64,7 +64,7 @@ const MOLAR = [
   { name: "دی‌اکسید کربن", names: ["دی‌اکسید کربن", "carbon dioxide"], formula: "CO2", weight: 44 },
   { name: "پروپان", names: ["پروپان", "propane"], formula: "C3H8", weight: 44 },
   { name: "گلوکز", names: ["گلوکز", "glucose"], formula: "C6H12O6", weight: 180 },
-  { name: "HCO", names: ["HCO"], formula: "HCO", weight: 61 },
+  { name: "هیدروژن کربنات", names: ["هیدروژن کربنات", "بی کربنات", "بی‌کربنات", "Hydrogen Carbonate"], formula: "HCO3", weight: 61 },
   { name: "سدیم بی‌کربنات", names: ["بی‌کربنات سدیم", "sodium bicarbonate", "sodium hydrogen carbonate"], formula: "NaHCO3", weight: 84 },
   { name: "باریم سولفات", names: ["سولفات باریم", "barium sulfate", "barium sulphate"], formula: "BaSO4", weight: 233 },
   { name: "آهن(III) اکسید", names: ["اکسید آهن", "iron(III) oxide", "ferric oxide"], formula: "Fe2O3", weight: 160 },
