@@ -71,7 +71,8 @@ const MOLAR = [
   { name: "آهن", names: ["آهن", "iron"], formula: "Fe", weight: 56 },
   { name: "آهن(II) اکسید", names: ["اکسید آهن(II)", "iron(II) oxide", "ferrous oxide"], formula: "FeO", weight: 62 },
   { name: "پتاسیم کلرات", names: ["کلرات پتاسیم", "potassium chlorate"], formula: "KClO3", weight: 122.5 },
-  { name: "پتاسیم نیترات", names: ["نیترات پتاسیم", "potassium nitrate"], formula: "KNO3", weight: 101 }
+  { name: "پتاسیم نیترات", names: ["نیترات پتاسیم", "potassium nitrate"], formula: "KNO3", weight: 101 },
+  { name: "آب", names: ["آب", "Water"], formula: "H20", weight: 18 }
 ];
 
 const ELEMENTS = [
