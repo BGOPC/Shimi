@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#131119">
-<title>آزمون یون‌ها و رسوب‌ها</title>
+<title>آزمون شیمی</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -14,20 +14,41 @@
   <section id="home" class="screen active">
     <header class="hero">
       <div class="logo">⚗️</div>
-      <h1>آزمون یون‌ها و رسوب‌ها</h1>
-      <p>اسم، فرمول، بار و رنگ رسوب‌ها را تصادفی تمرین کن</p>
+      <h1>آزمون شیمی</h1>
+      <p>یون‌ها، ترکیب‌ها، جرم‌های مولی و عناصر جدول را تمرین کن</p>
     </header>
 
+    <div class="global-settings">
+      <div class="global-settings-copy">
+        <strong>تنظیمات کلی</strong>
+        <span>زمان‌سنج برای همه بخش‌ها</span>
+      </div>
+      <label class="global-timer-toggle"><input id="timerEnabled" type="checkbox" checked><span>فعال بودن زمان‌سنج</span></label>
+    </div>
+
+    <div class="home-grid">
+    <div class="card mixed-card">
+      <div class="mixed-card-copy">
+        <h2>کوییز مجموعی</h2>
+        <p class="hint">سؤال‌های همه بخش‌ها در یک دور و با ترتیب کاملاً تصادفی</p>
+      </div>
+      <button class="btn primary" id="startMixed">شروع کوییز مجموعی</button>
+    </div>
     <div class="card">
-      <h2>آزمون تصادفی</h2>
-      <p class="hint">انتخاب کن از کدام‌ها بپرسم</p>
+      <h2>آزمون یون‌ها</h2>
+      <p class="hint">نوع یون‌هایی را که می‌خواهی تمرین کنی انتخاب کن</p>
       <div class="chips" id="quizChips">
         <label class="chip"><input type="checkbox" value="cat" checked><span>یون تک‌اتمی مثبت</span></label>
         <label class="chip"><input type="checkbox" value="an" checked><span>یون تک‌اتمی منفی</span></label>
         <label class="chip"><input type="checkbox" value="poly" checked><span>یون چنداتمی</span></label>
-        <label class="chip"><input type="checkbox" value="prec" checked><span>رسوب‌ها</span></label>
       </div>
-      <button class="btn primary wide" id="startQuiz">شروع آزمون</button>
+      <button class="btn primary wide" id="startQuiz">شروع آزمون یون‌ها</button>
+    </div>
+
+    <div class="card">
+      <h2>آزمون رسوب‌ها</h2>
+      <p class="hint">سؤال‌های مربوط به نام، فرمول، رنگ و یون‌های تشکیل‌دهندهٔ رسوب به‌صورت تصادفی</p>
+      <button class="btn primary wide" id="startPrecipQuiz">شروع آزمون رسوب‌ها</button>
     </div>
 
     <div class="card">
@@ -48,6 +69,43 @@
       <button class="btn primary wide" id="startComp">شروع ساخت ترکیب</button>
     </div>
 
+    <div class="card">
+      <h2>جرم های مولی</h2>
+      <p class="hint">نوع سؤال را انتخاب کن</p>
+      <div class="chips" id="molarTypes">
+        <label class="chip"><input type="checkbox" value="nameToMass" checked><span>نام به جرم</span></label>
+        <label class="chip"><input type="checkbox" value="formulaToMass" checked><span>فرمول به جرم</span></label>
+      </div>
+      <button class="btn primary wide" id="startMolar">شروع جرم های مولی</button>
+    </div>
+
+    <div class="card">
+      <h2>عناصر جدول</h2>
+      <p class="hint">دسته‌ها و نوع سؤال‌ها را انتخاب کن</p>
+      <p class="sub">دسته‌های عناصر</p>
+      <div class="chips" id="elementCats">
+        <label class="chip"><input type="checkbox" value="first36" checked><span>عناصر ۱ تا ۳۶</span></label>
+        <label class="chip"><input type="checkbox" value="g1"><span>گروه ۱</span></label>
+        <label class="chip"><input type="checkbox" value="g2"><span>گروه ۲</span></label>
+        <label class="chip"><input type="checkbox" value="g13"><span>گروه ۱۳</span></label>
+        <label class="chip"><input type="checkbox" value="g14"><span>گروه ۱۴</span></label>
+        <label class="chip"><input type="checkbox" value="g15"><span>گروه ۱۵</span></label>
+        <label class="chip"><input type="checkbox" value="g16"><span>گروه ۱۶</span></label>
+        <label class="chip"><input type="checkbox" value="g17"><span>گروه ۱۷</span></label>
+        <label class="chip"><input type="checkbox" value="g18"><span>گروه ۱۸</span></label>
+        <label class="chip"><input type="checkbox" value="tm4"><span>فلزات واسطه ردیف چهارم</span></label>
+      </div>
+      <p class="sub">نوع سؤال</p>
+      <div class="chips" id="elementTypes">
+        <label class="chip"><input type="checkbox" value="nameFromSymbol" checked><span>نماد ← نام</span></label>
+        <label class="chip"><input type="checkbox" value="numberFromSymbol"><span>نماد ← عدد اتمی</span></label>
+        <label class="chip"><input type="checkbox" value="nameAndSymbolFromNumber"><span>عدد اتمی ← نام و نماد</span></label>
+      </div>
+      <button class="btn primary wide" id="startElements">شروع عناصر جدول</button>
+    </div>
+
+    </div>
+
     <p class="foot">بدون نیاز به اینترنت · فقط سه فایل index.html, style.css, app.js</p>
   </section>
 
@@ -58,6 +116,7 @@
         <span class="pill ok" id="stRight">۰ ✔</span>
         <span class="pill" id="stTotal">۰ سؤال</span>
         <span class="pill hot" id="stStreak">🔥 ۰</span>
+        <span class="pill timer-pill hidden" id="stTimer">⏱ ۰۰:۰۰</span>
       </div>
     </div>
     <div class="card q">
@@ -79,6 +138,7 @@
         <div><b id="sumScore">—</b><span>درست</span></div>
         <div><b id="sumPct">—</b><span>درصد</span></div>
         <div><b id="sumBest">—</b><span>بهترین پشت‌سرهم</span></div>
+        <div><b id="sumTime">—</b><span>مدت زمان</span></div>
       </div>
       <h2>اشتباه‌ها</h2>
       <ul class="missed" id="sumMissed"></ul>

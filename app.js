@@ -47,6 +47,70 @@ const gcd = (a, b) => b ? gcd(b, a % b) : a;
 const rnd = n => Math.floor(Math.random() * n);
 const dir = () => Math.random() < 0.6 ? "n2f" : "f2n";
 
+
+const MOLAR = [
+  { name: "اکسیژن", names: ["اکسیژن", "oxygen"], formula: "O", weight: 16 },
+  { name: "نیتروژن", names: ["نیتروژن", "nitrogen"], formula: "N", weight: 14 },
+  { name: "کربن", names: ["کربن", "carbon"], formula: "C", weight: 12 },
+  { name: "هیدروژن", names: ["هیدروژن", "hydrogen"], formula: "H", weight: 1 },
+  { name: "کلسیم", names: ["کلسیم", "calcium"], formula: "Ca", weight: 40 },
+  { name: "سدیم", names: ["سدیم", "sodium"], formula: "Na", weight: 23 },
+  { name: "کربنات", names: ["کربنات", "carbonate"], formula: "CO3", weight: 60 },
+  { name: "دی‌اکسید گوگرد", names: ["دی‌اکسید گوگرد", "دی اکسید گوگرد", "sulfur dioxide", "sulphur dioxide"], formula: "SO2", weight: 64 },
+  { name: "سولفیت", names: ["سولفیت", "sulfite"], formula: "SO3", weight: 80 },
+  { name: "سولفات", names: ["سولفات", "sulfate", "sulphate"], formula: "SO4", weight: 96 }
+];
+
+const ELEMENTS = [
+  { z: 1, s: "H", n: ["هیدروژن", "hydrogen"], groups: [1] },
+  { z: 2, s: "He", n: ["هلیم", "هلیوم", "helium"], groups: [18] },
+  { z: 3, s: "Li", n: ["لیتیم", "لیتیوم", "lithium"], groups: [1] },
+  { z: 4, s: "Be", n: ["بریلیم", "beryllium"], groups: [2] },
+  { z: 5, s: "B", n: ["بور", "boron"], groups: [13] },
+  { z: 6, s: "C", n: ["کربن", "carbon"], groups: [14] },
+  { z: 7, s: "N", n: ["نیتروژن", "nitrogen"], groups: [15] },
+  { z: 8, s: "O", n: ["اکسیژن", "oxygen"], groups: [16] },
+  { z: 9, s: "F", n: ["فلوئور", "فلور", "fluorine"], groups: [17] },
+  { z: 10, s: "Ne", n: ["نئون", "neon"], groups: [18] },
+  { z: 11, s: "Na", n: ["سدیم", "sodium"], groups: [1] },
+  { z: 12, s: "Mg", n: ["منیزیم", "magnesium"], groups: [2] },
+  { z: 13, s: "Al", n: ["آلومینیوم", "الومینیوم", "aluminum", "aluminium"], groups: [13] },
+  { z: 14, s: "Si", n: ["سیلیسیم", "سیلیکون", "silicon"], groups: [14] },
+  { z: 15, s: "P", n: ["فسفر", "phosphorus"], groups: [15] },
+  { z: 16, s: "S", n: ["گوگرد", "sulfur", "sulphur"], groups: [16] },
+  { z: 17, s: "Cl", n: ["کلر", "chlorine"], groups: [17] },
+  { z: 18, s: "Ar", n: ["آرگون", "argon"], groups: [18] },
+  { z: 19, s: "K", n: ["پتاسیم", "potassium"], groups: [1] },
+  { z: 20, s: "Ca", n: ["کلسیم", "calcium"], groups: [2] },
+  { z: 21, s: "Sc", n: ["اسکاندیم", "scandium"], groups: [3], transition4: true },
+  { z: 22, s: "Ti", n: ["تیتانیم", "تیتانیوم", "titanium"], groups: [4], transition4: true },
+  { z: 23, s: "V", n: ["وانادیم", "وانادیوم", "vanadium"], groups: [5], transition4: true },
+  { z: 24, s: "Cr", n: ["کروم", "chromium"], groups: [6], transition4: true },
+  { z: 25, s: "Mn", n: ["منگنز", "manganese"], groups: [7], transition4: true },
+  { z: 26, s: "Fe", n: ["آهن", "iron"], groups: [8], transition4: true },
+  { z: 27, s: "Co", n: ["کبالت", "cobalt"], groups: [9], transition4: true },
+  { z: 28, s: "Ni", n: ["نیکل", "nickel"], groups: [10], transition4: true },
+  { z: 29, s: "Cu", n: ["مس", "copper"], groups: [11], transition4: true },
+  { z: 30, s: "Zn", n: ["روی", "زینک", "zinc"], groups: [12], transition4: true },
+  { z: 31, s: "Ga", n: ["گالیم", "gallium"], groups: [13] },
+  { z: 32, s: "Ge", n: ["ژرمانیم", "germanium"], groups: [14] },
+  { z: 33, s: "As", n: ["آرسنیک", "arsenic"], groups: [15] },
+  { z: 34, s: "Se", n: ["سلنیم", "سلنیوم", "selenium"], groups: [16] },
+  { z: 35, s: "Br", n: ["برم", "bromine"], groups: [17] },
+  { z: 36, s: "Kr", n: ["کریپتون", "krypton"], groups: [18] }
+];
+
+const asciiDigits = s => String(s)
+  .replace(/[۰-۹]/g, d => String(FA.indexOf(d)))
+  .replace(/[٠-٩]/g, d => String(AR.indexOf(d)));
+const chkNumber = (inp, expected, label) => {
+  const x = asciiDigits(inp).trim();
+  if (!x) return { ok: false, msg: "چیزی ننوشتی" };
+  if (!/^\d+(?:\.\d+)?$/.test(x)) return { ok: false, msg: "عدد نامعتبر است" };
+  if (Number(x) === expected) return { ok: true };
+  return { ok: false, msg: label === "weight" ? "جرم مولی اشتباه است" : "عدد اتمی اشتباه است" };
+};
+
 const mk = (kind, f, c, n, extra) => Object.assign({ kind, f, c, n, fa: [f] }, extra || {});
 const TM = (f, base, c) => mk("cat", f, c, [base + " " + toFa(c)], { base, tm: true });
 
@@ -318,15 +382,56 @@ const compQ = (ca, an, d) => {
   };
 };
 
-const mkQ = d => d.k === "ion" ? ionQ(d.i, d.d) : d.k === "prec" ? precQ(d.p, d.t) : compQ(d.ca, d.an, d.d);
+const molarQ = (item, type) => {
+  if (type === "formulaToMass") return {
+    badge: "",
+    prompt: `جرم مولی این فرمول چقدر است؟<div class="big">${fHtml(item.formula)}</div>`,
+    fields: [FD("w", "جرم مولی", "مثلاً 16", "ltr")],
+    check: v => ({ w: chkNumber(v.w, item.weight, "weight") }),
+    answer: String(item.weight)
+  };
+  return {
+    badge: "",
+    prompt: `جرم مولی <b>${item.name}</b> چقدر است؟`,
+    fields: [FD("w", "جرم مولی", "مثلاً 16", "ltr")],
+    check: v => ({ w: chkNumber(v.w, item.weight, "weight") }),
+    answer: String(item.weight)
+  };
+};
 
-const S = { mode: "quiz", bag: [], last: null, right: 0, total: 0, streak: 0, best: 0, missed: [], cur: null, locked: false, cfg: {} };
+const elementQ = (e, t) => {
+  if (t === "nameFromSymbol") return {
+    badge: "عناصر جدول",
+    prompt: `نام این عنصر چیست؟<div class="big"><span class="chem">${e.s}</span></div>`,
+    fields: [fN("نام عنصر")],
+    check: v => ({ n: chkNames(v.n, e.n) }),
+    answer: e.n[0]
+  };
+  if (t === "numberFromSymbol") return {
+    badge: "عناصر جدول",
+    prompt: `عدد اتمی این عنصر چند است؟<div class="big"><span class="chem">${e.s}</span></div>`,
+    fields: [FD("z", "عدد اتمی", "مثلاً 1", "ltr")],
+    check: v => ({ z: chkNumber(v.z, e.z, "atomic") }),
+    answer: String(e.z)
+  };
+  return {
+    badge: "عناصر جدول",
+    prompt: `نام و نماد عنصر با عدد اتمی <div class="big">${toFa(e.z)}</div> چیست؟`,
+    fields: [fN("نام عنصر"), FD("s", "نماد", "مثلاً H", "ltr")],
+    check: v => ({ n: chkNames(v.n, e.n), s: chkF(v.s, [e.s]) }),
+    answer: `${e.n[0]} (${e.s})`
+  };
+};
+
+const mkQ = d => d.k === "ion" ? ionQ(d.i, d.d) : d.k === "prec" ? precQ(d.p, d.t) : d.k === "comp" ? compQ(d.ca, d.an, d.d) : d.k === "molar" ? molarQ(d.item, d.t) : elementQ(d.e, d.t);
+
+const S = { mode: "quiz", bag: [], last: null, right: 0, total: 0, streak: 0, best: 0, missed: [], cur: null, locked: false, cfg: {}, timerEnabled: true, timerStartedAt: null, elapsedMs: 0, timerInterval: null };
 
 const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = rnd(i + 1); [a[i], a[j]] = [a[j], a[i]]; } return a; };
 
-const buildBag = () => {
-  const a = [], c = S.cfg;
-  if (S.mode === "quiz") {
+const buildBagFor = (mode, c) => {
+  const a = [];
+  if (mode === "quiz") {
     const ions = [];
     if (c.cat) ions.push(...CATS);
     if (c.an) ions.push(...ANS);
@@ -336,7 +441,12 @@ const buildBag = () => {
       ["p1", "p2", "p3"].forEach(t => a.push({ k: "prec", p, t }));
       if (!p.fe) a.push({ k: "prec", p, t: "p4" });
     });
-  } else {
+  } else if (mode === "precip") {
+    PREC.forEach(p => {
+      ["p1", "p2", "p3"].forEach(t => a.push({ k: "prec", p, t }));
+      if (!p.fe) a.push({ k: "prec", p, t: "p4" });
+    });
+  } else if (mode === "comp") {
     const cs = [];
     if (c.g) cs.push(...CATS.filter(x => !x.tm && x.f !== "H"));
     if (c.tm) cs.push(...CATS.filter(x => x.tm));
@@ -346,8 +456,40 @@ const buildBag = () => {
     if (c.nm) as.push(...NM);
     if (c.poly) as.push(...POLY.filter(x => x.c < 0));
     cs.forEach(ca => as.forEach(an => a.push({ k: "comp", ca, an, d: dir() })));
+  } else if (mode === "molar") {
+    const types = [];
+    if (c.nameToMass) types.push("nameToMass");
+    if (c.formulaToMass) types.push("formulaToMass");
+    MOLAR.forEach(item => types.forEach(t => a.push({ k: "molar", item, t })));
+  } else if (mode === "elements") {
+    const selected = new Set();
+    if (c.first36) ELEMENTS.forEach(e => selected.add(e.z));
+    for (const group of [1, 2, 13, 14, 15, 16, 17, 18]) {
+      if (c["g" + group]) ELEMENTS.filter(e => e.groups.includes(group)).forEach(e => selected.add(e.z));
+    }
+    if (c.tm4) ELEMENTS.filter(e => e.transition4).forEach(e => selected.add(e.z));
+    const types = [];
+    if (c.nameFromSymbol) types.push("nameFromSymbol");
+    if (c.numberFromSymbol) types.push("numberFromSymbol");
+    if (c.nameAndSymbolFromNumber) types.push("nameAndSymbolFromNumber");
+    ELEMENTS.filter(e => selected.has(e.z)).forEach(e => {
+      types.forEach(t => a.push({ k: "element", e, t }));
+    });
   }
-  return shuffle(a);
+  return a;
+};
+
+const buildBag = () => {
+  if (S.mode === "mixed") {
+    const c = S.cfg;
+    return shuffle([
+      ...buildBagFor("quiz", c.quiz),
+      ...buildBagFor("comp", c.comp),
+      ...buildBagFor("molar", c.molar),
+      ...buildBagFor("elements", c.elements)
+    ]);
+  }
+  return shuffle(buildBagFor(S.mode, S.cfg));
 };
 
 const show = id => $$(".screen").forEach(s => s.classList.toggle("active", s.id === id));
@@ -358,6 +500,18 @@ const renderStats = () => {
   $("#stRight").textContent = toFa(S.right) + " ✔";
   $("#stTotal").textContent = toFa(S.total) + " سؤال";
   $("#stStreak").textContent = "🔥 " + toFa(S.streak);
+};
+
+const formatDuration = ms => {
+  const seconds = Math.floor(ms / 1000);
+  const pad = n => toFa(n).padStart(2, "۰");
+  return pad(Math.floor(seconds / 60)) + ":" + pad(seconds % 60);
+};
+
+const updateTimer = () => {
+  if (!S.timerEnabled || S.timerStartedAt === null) return;
+  S.elapsedMs = Date.now() - S.timerStartedAt;
+  $("#stTimer").textContent = "⏱ " + formatDuration(S.elapsedMs);
 };
 
 const nextQ = () => {
@@ -374,6 +528,7 @@ const nextQ = () => {
   S.cur = { d, q };
   S.locked = false;
   $("#qBadge").textContent = q.badge;
+  $("#qBadge").classList.toggle("hidden", !q.badge);
   $("#qPrompt").innerHTML = q.prompt;
   $("#fields").innerHTML = q.fields.map(f =>
     `<div class="fld" id="fld_${f.id}"><label for="in_${f.id}"><span>${f.label}</span></label>` +
@@ -420,8 +575,10 @@ const act = () => {
   } else {
     S.streak = 0;
     if (!S.missed.some(m => m.a === q.answer)) S.missed.push({ p: q.prompt, a: q.answer });
-    const idx = Math.max(0, S.bag.length - (4 + rnd(5)));
-    S.bag.splice(idx, 0, S.cur.d);
+    if (S.mode !== "elements") {
+      const idx = Math.max(0, S.bag.length - (4 + rnd(5)));
+      S.bag.splice(idx, 0, S.cur.d);
+    }
   }
   const box = $("#result");
   box.className = "result " + (ok ? "ok" : "bad");
@@ -434,19 +591,34 @@ const act = () => {
 };
 
 const start = (mode, cfg) => {
-  Object.assign(S, { mode, cfg, bag: [], last: null, right: 0, total: 0, streak: 0, best: 0, missed: [], cur: null, locked: false });
+  if (S.timerInterval) clearInterval(S.timerInterval);
+  const timerEnabled = $("#timerEnabled").checked;
+  Object.assign(S, { mode, cfg, bag: [], last: null, right: 0, total: 0, streak: 0, best: 0, missed: [], cur: null, locked: false, timerEnabled, timerStartedAt: null, elapsedMs: 0, timerInterval: null });
+  S.timerStartedAt = S.timerEnabled ? Date.now() : null;
   S.bag = buildBag();
-  if (!S.bag.length) return;
+  if (!S.bag.length) {
+    S.timerStartedAt = null;
+    return;
+  }
+  $("#stTimer").classList.toggle("hidden", !S.timerEnabled);
+  if (S.timerEnabled) {
+    updateTimer();
+    S.timerInterval = setInterval(updateTimer, 1000);
+  }
   renderStats();
   show("quiz");
   nextQ();
 };
 
 const finish = () => {
+  if (S.timerInterval) clearInterval(S.timerInterval);
+  S.timerInterval = null;
+  if (S.timerEnabled && S.timerStartedAt !== null) S.elapsedMs = Date.now() - S.timerStartedAt;
   const t = S.total, r = S.right;
   $("#sumScore").textContent = toFa(r) + " از " + toFa(t);
   $("#sumPct").textContent = t ? toFa(Math.round(100 * r / t)) + "٪" : "—";
   $("#sumBest").textContent = toFa(S.best);
+  $("#sumTime").textContent = S.timerEnabled ? formatDuration(S.elapsedMs) : "خاموش";
   $("#sumMissed").innerHTML = S.missed.length
     ? S.missed.map(x => `<li><div class="mp">${x.p}</div><div class="ma">${x.a}</div></li>`).join("")
     : `<li class="none">هیچ اشتباهی نداشتی 🎉</li>`;
@@ -465,9 +637,21 @@ const loadCfg = () => {
   try {
     const a = JSON.parse(localStorage.getItem("ionquiz"));
     const ins = $$(".chip input");
-    if (Array.isArray(a) && a.length === ins.length) ins.forEach((i, k) => i.checked = !!a[k]);
+    if (Array.isArray(a) && a.length === ins.length) {
+      ins.forEach((i, k) => i.checked = !!a[k]);
+    } else if (Array.isArray(a) && a.length === ins.length + 1) {
+      // Migrate settings saved before the precipitation quiz became a separate section.
+      const migrated = a.slice(0, 3).concat(a.slice(4));
+      ins.forEach((i, k) => i.checked = !!migrated[k]);
+    }
+    const timer = localStorage.getItem("ionquizTimer");
+    if (timer !== null) $("#timerEnabled").checked = timer === "1";
   } catch (e) {}
 };
+
+$("#timerEnabled").addEventListener("change", () => {
+  try { localStorage.setItem("ionquizTimer", $("#timerEnabled").checked ? "1" : "0"); } catch (e) {}
+});
 
 const flash = el => {
   el.animate([{ transform: "translateX(0)" }, { transform: "translateX(-6px)" }, { transform: "translateX(6px)" }, { transform: "translateX(0)" }], { duration: 300 });
@@ -480,11 +664,43 @@ $("#startQuiz").addEventListener("click", () => {
   start("quiz", c);
 });
 
+$("#startPrecipQuiz").addEventListener("click", () => {
+  saveCfg();
+  start("precip", {});
+});
+
 $("#startComp").addEventListener("click", () => {
   const a = readChips("compCat"), b = readChips("compAn");
   if (!anyOn(a) || !anyOn(b)) { flash($(!anyOn(a) ? "#compCat" : "#compAn")); return; }
   saveCfg();
   start("comp", Object.assign({}, a, b));
+});
+
+$("#startMolar").addEventListener("click", () => {
+  const types = readChips("molarTypes");
+  if (!anyOn(types)) { flash($("#molarTypes")); return; }
+  saveCfg();
+  start("molar", types);
+});
+
+$("#startElements").addEventListener("click", () => {
+  const categories = readChips("elementCats"), types = readChips("elementTypes");
+  if (!anyOn(categories) || !anyOn(types)) {
+    flash($(!anyOn(categories) ? "#elementCats" : "#elementTypes"));
+    return;
+  }
+  saveCfg();
+  start("elements", Object.assign({}, categories, types));
+});
+
+$("#startMixed").addEventListener("click", () => {
+  const cfg = {
+    quiz: Object.assign({}, readChips("quizChips"), { prec: true }),
+    comp: Object.assign({}, readChips("compCat"), readChips("compAn")),
+    molar: readChips("molarTypes"),
+    elements: Object.assign({}, readChips("elementCats"), readChips("elementTypes"))
+  };
+  start("mixed", cfg);
 });
 
 $("#actBtn").addEventListener("click", act);
