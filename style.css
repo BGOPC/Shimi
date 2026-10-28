@@ -168,7 +168,7 @@ h2{font-size:1.3rem;font-weight:800}
 .timer-toggle input{width:18px;height:18px;accent-color:var(--acc);flex:0 0 auto}
 .timer-toggle span{font-size:.95rem;font-weight:600}
 .timer-pill{direction:ltr;font-variant-numeric:tabular-nums;white-space:nowrap}
-#startMolar,#startElements{margin-top:2px}
+/* Start buttons are pushed to the bottom by .home-grid > .card > .btn.wide. */
 .sumgrid{grid-template-columns:repeat(4,minmax(0,1fr))}
 @media (max-width:520px){
   main{padding-left:12px;padding-right:12px}
@@ -261,4 +261,108 @@ main{
   .home-grid>.card{padding:16px}
   .topbar{gap:8px}
   .stats{min-width:0}
+}
+
+
+/* Mobile-only accordion headers. Desktop keeps every quiz card fully expanded. */
+.mobile-card-toggle{display:none}
+.mobile-card-content{display:flex;flex-direction:column;flex:1;min-width:0}
+/* Keep the mixed quiz content stacked on wide screens, with its start button full-width below the options. */
+.home-grid>.mixed-card .mixed-card-content{
+  display:flex;
+  flex:1;
+  min-width:0;
+  width:100%;
+  flex-direction:column;
+  align-items:stretch;
+  justify-content:flex-start;
+  gap:16px;
+}
+.home-grid>.mixed-card .mixed-card-content>.btn{
+  flex:0 0 auto;
+  width:100%;
+  min-width:0;
+  margin-top:auto;
+}
+.home-grid>.card .mobile-card-content>.btn.wide{margin-top:auto;padding-top:12px;padding-bottom:12px}
+
+@media (max-width:760px){
+  .home-grid{gap:0}
+  .home-grid>.mobile-accordion-card{
+    position:relative;
+    display:flex;
+    flex-direction:column;
+    height:auto;
+    gap:0;
+    padding:0;
+    margin:0;
+    border:0;
+    border-radius:0;
+    background:transparent;
+    box-shadow:none;
+  }
+  .home-grid>.mobile-accordion-card:not(:last-child)::after{
+    content:"";
+    display:block;
+    width:100%;
+    height:1px;
+    flex:0 0 1px;
+    background:linear-gradient(90deg,transparent 0%,var(--bd) 13%,var(--bd) 87%,transparent 100%);
+  }
+  .mobile-card-toggle{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:16px;
+    width:100%;
+    padding:15px 4px;
+    border:0;
+    border-radius:0;
+    background:transparent;
+    color:var(--tx);
+    font:inherit;
+    font-size:1.08rem;
+    font-weight:800;
+    text-align:right;
+    cursor:pointer;
+    direction:rtl;
+    -webkit-appearance:none;
+    appearance:none;
+  }
+  .mobile-card-toggle:focus-visible{
+    outline:2px solid var(--acc-fg);
+    outline-offset:-2px;
+    border-radius:6px;
+  }
+  .mobile-card-chevron{
+    display:inline-block;
+    box-sizing:border-box;
+    flex:0 0 10px;
+    width:10px;
+    height:10px;
+    margin:0 4px;
+    border-right:2px solid var(--acc-fg);
+    border-bottom:2px solid var(--acc-fg);
+    transform:rotate(45deg);
+    transform-origin:center;
+    transition:transform .2s ease;
+  }
+  .mobile-card-toggle[aria-expanded="true"] .mobile-card-chevron{transform:rotate(225deg)}
+  .mobile-card-content{display:none;width:100%;padding:0 4px 18px;animation:mobileAccordionReveal .22s ease both}
+  .mobile-accordion-card.is-expanded>.mobile-card-content{display:flex}
+  .mobile-card-content>h2{display:none}
+  .home-grid>.mixed-card{grid-column:auto;align-items:stretch;flex-direction:column;gap:0}
+  .home-grid>.mixed-card .mixed-card-content{flex-direction:column;align-items:stretch;justify-content:flex-start;gap:12px}
+  .home-grid>.mixed-card .mixed-card-content>.btn{width:100%;min-width:0;margin:0}
+  .home-grid>.mixed-card .mixed-card-copy .hint{margin:0 0 12px}
+  .home-grid>.mobile-accordion-card .chips{margin-bottom:14px}
+  .home-grid>.mobile-accordion-card .mobile-card-content>.btn.wide{margin-top:8px}
+}
+@keyframes mobileAccordionReveal{
+  from{opacity:0;transform:translateY(-4px)}
+  to{opacity:1;transform:translateY(0)}
+}
+@media (prefers-reduced-motion:reduce){
+  .mobile-card-chevron{transition:none}
+  .mobile-card-content{animation:none}
 }

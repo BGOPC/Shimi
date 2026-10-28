@@ -27,20 +27,27 @@
 
     <div class="home-grid">
     <div class="card mixed-card">
-      <div class="mixed-card-copy">
-        <h2>کوییز جامع</h2>
-        <p class="hint">مشخص کن سؤال‌های کدام بخش‌ها در آزمون باشند</p>
-        <div class="chips mixed-options" id="mixedOptions">
-          <label class="chip"><input type="checkbox" value="ions" checked><span>آزمون یون‌ها</span></label>
-          <label class="chip"><input type="checkbox" value="precip" checked><span>آزمون رسوب‌ها</span></label>
-          <label class="chip"><input type="checkbox" value="molar" checked><span>جرم‌های مولی</span></label>
-          <label class="chip"><input type="checkbox" value="comp" checked><span>ساخت ترکیب</span></label>
-          <label class="chip"><input type="checkbox" value="elements" checked><span>عناصر جدول</span></label>
+      <div class="mixed-card-content">
+        <div class="mixed-card-copy">
+          <h2>کوییز جامع</h2>
+          <p class="hint">مشخص کن سؤال‌های کدام بخش‌ها در آزمون باشند</p>
+          <div class="chips mixed-options" id="mixedOptions">
+            <label class="chip"><input type="checkbox" value="ions" checked><span>آزمون یون‌ها</span></label>
+            <label class="chip"><input type="checkbox" value="precip" checked><span>آزمون رسوب‌ها</span></label>
+            <label class="chip"><input type="checkbox" value="molar" checked><span>جرم‌های مولی</span></label>
+            <label class="chip"><input type="checkbox" value="comp" checked><span>ساخت ترکیب</span></label>
+            <label class="chip"><input type="checkbox" value="elements" checked><span>عناصر جدول</span></label>
+          </div>
         </div>
+        <button class="btn primary" id="startMixed">شروع کوییز جامع</button>
       </div>
-      <button class="btn primary" id="startMixed">شروع کوییز جامع</button>
     </div>
-    <div class="card">
+    <div class="card mobile-accordion-card" data-mobile-accordion>
+      <button class="mobile-card-toggle" type="button" aria-expanded="false" aria-controls="mobile-ions-content">
+        <span>آزمون یون‌ها</span>
+        <span class="mobile-card-chevron" aria-hidden="true"></span>
+      </button>
+      <div class="mobile-card-content" id="mobile-ions-content">
       <h2>آزمون یون‌ها</h2>
       <p class="hint">نوع یون‌هایی را که می‌خواهی تمرین کنی انتخاب کن</p>
       <div class="chips" id="quizChips">
@@ -49,15 +56,27 @@
         <label class="chip"><input type="checkbox" value="poly" checked><span>یون چنداتمی</span></label>
       </div>
       <button class="btn primary wide" id="startQuiz">شروع آزمون یون‌ها</button>
+      </div>
     </div>
 
-    <div class="card">
+    <div class="card mobile-accordion-card" data-mobile-accordion>
+      <button class="mobile-card-toggle" type="button" aria-expanded="false" aria-controls="mobile-precip-content">
+        <span>آزمون رسوب‌ها</span>
+        <span class="mobile-card-chevron" aria-hidden="true"></span>
+      </button>
+      <div class="mobile-card-content" id="mobile-precip-content">
       <h2>آزمون رسوب‌ها</h2>
       <p class="hint">سؤال‌های مربوط به نام، فرمول، رنگ و یون‌های تشکیل‌دهندهٔ رسوب به‌صورت تصادفی</p>
       <button class="btn primary wide" id="startPrecipQuiz">شروع آزمون رسوب‌ها</button>
+      </div>
     </div>
 
-    <div class="card">
+    <div class="card mobile-accordion-card" data-mobile-accordion>
+      <button class="mobile-card-toggle" type="button" aria-expanded="false" aria-controls="mobile-comp-content">
+        <span>ساخت ترکیب</span>
+        <span class="mobile-card-chevron" aria-hidden="true"></span>
+      </button>
+      <div class="mobile-card-content" id="mobile-comp-content">
       <h2>ساخت ترکیب</h2>
       <p class="hint">فرمول ← نام و نام ← فرمول</p>
       <p class="sub">کاتیون‌ها</p>
@@ -73,9 +92,15 @@
         <label class="chip"><input type="checkbox" value="poly" checked><span>چنداتمی</span></label>
       </div>
       <button class="btn primary wide" id="startComp">شروع ساخت ترکیب</button>
+      </div>
     </div>
 
-    <div class="card">
+    <div class="card mobile-accordion-card" data-mobile-accordion>
+      <button class="mobile-card-toggle" type="button" aria-expanded="false" aria-controls="mobile-molar-content">
+        <span>جرم های مولی</span>
+        <span class="mobile-card-chevron" aria-hidden="true"></span>
+      </button>
+      <div class="mobile-card-content" id="mobile-molar-content">
       <h2>جرم های مولی</h2>
       <p class="hint">نوع سؤال را انتخاب کن</p>
       <div class="chips" id="molarTypes">
@@ -83,9 +108,15 @@
         <label class="chip"><input type="checkbox" value="formulaToMass" checked><span>فرمول به جرم</span></label>
       </div>
       <button class="btn primary wide" id="startMolar">شروع جرم های مولی</button>
+      </div>
     </div>
 
-    <div class="card">
+    <div class="card mobile-accordion-card" data-mobile-accordion>
+      <button class="mobile-card-toggle" type="button" aria-expanded="false" aria-controls="mobile-elements-content">
+        <span>عناصر جدول</span>
+        <span class="mobile-card-chevron" aria-hidden="true"></span>
+      </button>
+      <div class="mobile-card-content" id="mobile-elements-content">
       <h2>عناصر جدول</h2>
       <p class="hint">دسته‌ها و نوع سؤال‌ها را انتخاب کن</p>
       <p class="sub">دسته‌های عناصر</p>
@@ -108,6 +139,7 @@
         <label class="chip"><input type="checkbox" value="nameAndSymbolFromNumber"><span>عدد اتمی ← نام و نماد</span></label>
       </div>
       <button class="btn primary wide" id="startElements">شروع عناصر جدول</button>
+      </div>
     </div>
 
     </div>
@@ -153,5 +185,6 @@
 
 </main>
 <script type="module" src="/src/main.js"></script>
+<script type="module" src="/src/mobile-accordions.js"></script>
 </body>
 </html>
