@@ -1,0 +1,28 @@
+// Molar-mass question data.
+export const MOLAR = [
+  { name: "اکسیژن", names: ["اکسیژن", "oxygen"], formula: "O", weight: 16 },
+  { name: "نیتروژن", names: ["نیتروژن", "nitrogen"], formula: "N", weight: 14 },
+  { name: "کربن", names: ["کربن", "carbon"], formula: "C", weight: 12 },
+  { name: "هیدروژن", names: ["هیدروژن", "hydrogen"], formula: "H", weight: 1 },
+  { name: "کلسیم", names: ["کلسیم", "calcium"], formula: "Ca", weight: 40 },
+  { name: "سدیم", names: ["سدیم", "sodium"], formula: "Na", weight: 23 },
+  { name: "کربنات", names: ["کربنات", "carbonate"], formula: "CO3", weight: 60 },
+  { name: "دی‌اکسید گوگرد", names: ["دی‌اکسید گوگرد", "دی اکسید گوگرد", "sulfur dioxide", "sulphur dioxide"], formula: "SO2", weight: 64 },
+  { name: "سولفیت", names: ["سولفیت", "sulfite"], formula: "SO3", weight: 80 },
+  { name: "سولفات", names: ["سولفات", "sulfate", "sulphate"], formula: "SO4", weight: 96 },
+  { name: "کربنات کلسیم", names: ["کربنات کلسیم", "calcium carbonate"], formula: "CaCO3", weight: 100 },
+  { name: "نیترات", names: ["نیترات", "nitrate"], formula: "NO3", weight: 62 },
+  { name: "دی‌اکسید کربن", names: ["دی‌اکسید کربن", "carbon dioxide"], formula: "CO2", weight: 44 },
+  { name: "پروپان", names: ["پروپان", "propane"], formula: "C3H8", weight: 44 },
+  { name: "گلوکز", names: ["گلوکز", "glucose"], formula: "C6H12O6", weight: 180 },
+  { name: "هیدروژن کربنات", names: ["هیدروژن کربنات", "بی کربنات", "بی‌کربنات", "Hydrogen Carbonate"], formula: "HCO3", weight: 61 },
+  { name: "سدیم بی‌کربنات", names: ["بی‌کربنات سدیم", "sodium bicarbonate", "sodium hydrogen carbonate"], formula: "NaHCO3", weight: 84 },
+  { name: "باریم سولفات", names: ["سولفات باریم", "barium sulfate", "barium sulphate"], formula: "BaSO4", weight: 233 },
+  { name: "آهن(III) اکسید", names: ["اکسید آهن", "iron(III) oxide", "ferric oxide"], formula: "Fe2O3", weight: 160 },
+  { name: "آهن", names: ["آهن", "iron"], formula: "Fe", weight: 56 },
+  { name: "آهن(II) اکسید", names: ["اکسید آهن(II)", "iron(II) oxide", "ferrous oxide"], formula: "FeO", weight: 62 },
+  { name: "پتاسیم کلرات", names: ["کلرات پتاسیم", "potassium chlorate"], formula: "KClO3", weight: 122.5 },
+  { name: "پتاسیم نیترات", names: ["نیترات پتاسیم", "potassium nitrate"], formula: "KNO3", weight: 101 },
+  { name: "باریم کلرید", names: ["Barium Chloride"], formula: "BaCl2", weight: 208 },
+  { name: "آب", names: ["آب", "Water"], formula: "H20", weight: 18 }
+];
