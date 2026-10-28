@@ -47,7 +47,6 @@ const gcd = (a, b) => b ? gcd(b, a % b) : a;
 const rnd = n => Math.floor(Math.random() * n);
 const dir = () => Math.random() < 0.6 ? "n2f" : "f2n";
 
-
 const MOLAR = [
   { name: "اکسیژن", names: ["اکسیژن", "oxygen"], formula: "O", weight: 16 },
   { name: "نیتروژن", names: ["نیتروژن", "nitrogen"], formula: "N", weight: 14 },
@@ -72,6 +71,7 @@ const MOLAR = [
   { name: "آهن(II) اکسید", names: ["اکسید آهن(II)", "iron(II) oxide", "ferrous oxide"], formula: "FeO", weight: 62 },
   { name: "پتاسیم کلرات", names: ["کلرات پتاسیم", "potassium chlorate"], formula: "KClO3", weight: 122.5 },
   { name: "پتاسیم نیترات", names: ["نیترات پتاسیم", "potassium nitrate"], formula: "KNO3", weight: 101 },
+  { name: "باریم کلرید", names: ["Barium Chloride"], formula: "BaCl2", weight: 208 },
   { name: "آب", names: ["آب", "Water"], formula: "H20", weight: 18 }
 ];
 
@@ -496,12 +496,18 @@ const buildBagFor = (mode, c) => {
 const buildBag = () => {
   if (S.mode === "mixed") {
     const c = S.cfg;
-    return shuffle([
-      ...buildBagFor("quiz", c.quiz),
-      ...buildBagFor("comp", c.comp),
-      ...buildBagFor("molar", c.molar),
-      ...buildBagFor("elements", c.elements)
-    ]);
+    const a = [];
+    if (c.ions) a.push(...buildBagFor("quiz", { cat: true, an: true, poly: true }));
+    if (c.precip) a.push(...buildBagFor("precip", {}));
+    if (c.molar) a.push(...buildBagFor("molar", { nameToMass: true, formulaToMass: true }));
+    if (c.comp) a.push(...buildBagFor("comp", { g: true, tm: true, nh4: true, mono: true, nm: true, poly: true }));
+    if (c.elements) a.push(...buildBagFor("elements", {
+      first36: true,
+      nameFromSymbol: true,
+      numberFromSymbol: true,
+      nameAndSymbolFromNumber: true
+    }));
+    return shuffle(a);
   }
   return shuffle(buildBagFor(S.mode, S.cfg));
 };
@@ -644,13 +650,13 @@ const anyOn = o => Object.values(o).some(Boolean);
 
 const saveCfg = () => {
   try {
-    localStorage.setItem("ionquiz", JSON.stringify($$(".chip input").map(i => i.checked)));
+    localStorage.setItem("ionquiz", JSON.stringify($$(".home-grid .card:not(.mixed-card) .chip input").map(i => i.checked)));
   } catch (e) {}
 };
 const loadCfg = () => {
   try {
     const a = JSON.parse(localStorage.getItem("ionquiz"));
-    const ins = $$(".chip input");
+    const ins = $$(".home-grid .card:not(.mixed-card) .chip input");
     if (Array.isArray(a) && a.length === ins.length) {
       ins.forEach((i, k) => i.checked = !!a[k]);
     } else if (Array.isArray(a) && a.length === ins.length + 1) {
@@ -708,12 +714,8 @@ $("#startElements").addEventListener("click", () => {
 });
 
 $("#startMixed").addEventListener("click", () => {
-  const cfg = {
-    quiz: Object.assign({}, readChips("quizChips"), { prec: true }),
-    comp: Object.assign({}, readChips("compCat"), readChips("compAn")),
-    molar: readChips("molarTypes"),
-    elements: Object.assign({}, readChips("elementCats"), readChips("elementTypes"))
-  };
+  const cfg = readChips("mixedOptions");
+  if (!anyOn(cfg)) { flash($("#mixedOptions")); return; }
   start("mixed", cfg);
 });
 

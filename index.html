@@ -30,7 +30,14 @@
     <div class="card mixed-card">
       <div class="mixed-card-copy">
         <h2>کوییز مجموعی</h2>
-        <p class="hint">سؤال‌های همه بخش‌ها در یک دور و با ترتیب کاملاً تصادفی</p>
+        <p class="hint">مشخص کن سؤال‌های کدام بخش‌ها در آزمون باشند</p>
+        <div class="chips mixed-options" id="mixedOptions">
+          <label class="chip"><input type="checkbox" value="ions" checked><span>آزمون یون‌ها</span></label>
+          <label class="chip"><input type="checkbox" value="precip" checked><span>آزمون رسوب‌ها</span></label>
+          <label class="chip"><input type="checkbox" value="molar" checked><span>جرم‌های مولی</span></label>
+          <label class="chip"><input type="checkbox" value="comp" checked><span>ساخت ترکیب</span></label>
+          <label class="chip"><input type="checkbox" value="elements" checked><span>عناصر جدول</span></label>
+        </div>
       </div>
       <button class="btn primary" id="startMixed">شروع کوییز مجموعی</button>
     </div>
