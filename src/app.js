@@ -3,9 +3,50 @@ import { MOLAR } from "./data/molar.js";
 import { ELEMENTS } from "./data/elements.js";
 import { CATS, ANS, POLY } from "./data/ions.js";
 import { NM, PREC, COLORS } from "./data/precipitates.js";
+import { createElementPicker } from "./element-picker.js";
+import "./element-picker.css";
 
 const $ = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];
+
+const MANUAL_ELEMENTS_KEY = "elementQuizManualSelection";
+const MANUAL_ELEMENTS_VERSION_KEY = "elementQuizManualSelectionVersion";
+
+const getSavedManualElements = () => {
+  try {
+    const saved = localStorage.getItem(MANUAL_ELEMENTS_KEY);
+    const version = localStorage.getItem(MANUAL_ELEMENTS_VERSION_KEY);
+    if (saved !== null) {
+      const parsed = JSON.parse(saved);
+      if (Array.isArray(parsed)) {
+        const valid = new Set(parsed.filter(z => ELEMENTS.some(e => e.z === z)));
+        if (version !== "2") {
+          ELEMENTS.filter(e => e.z > 36).forEach(e => valid.add(e.z));
+          localStorage.setItem(MANUAL_ELEMENTS_KEY, JSON.stringify([...valid]));
+          localStorage.setItem(MANUAL_ELEMENTS_VERSION_KEY, "2");
+        }
+        return [...valid];
+      }
+    }
+    localStorage.setItem(MANUAL_ELEMENTS_VERSION_KEY, "2");
+  } catch (e) {}
+  return ELEMENTS.map(e => e.z);
+};
+
+const elementCategoryOptions = $("#elementCats");
+const manualElementsOption = document.createElement("label");
+manualElementsOption.className = "chip";
+manualElementsOption.innerHTML = '<input type="checkbox" value="manualElements"><span>انتخاب دستی عناصر</span>';
+elementCategoryOptions.append(manualElementsOption);
+
+const elementPicker = createElementPicker({
+  anchor: elementCategoryOptions,
+  elements: ELEMENTS,
+  initialSelected: getSavedManualElements(),
+  onChange: selected => {
+    try { localStorage.setItem("elementQuizManualSelection", JSON.stringify(selected)); } catch (e) {}
+  }
+});
 
 const normName = s => {
   s = nd(s).toLowerCase()
@@ -284,6 +325,13 @@ const elementQ = (e, t) => {
     check: v => ({ z: chkNumber(v.z, e.z, "atomic") }),
     answer: String(e.z)
   };
+  if (t === "symbolFromNumber") return {
+    badge: "عناصر جدول",
+    prompt: `نماد عنصر با عدد اتمی<div class="big">${toFa(e.z)}</div>چیست؟`,
+    fields: [FD("s", "نماد", "مثلاً Na", "ltr")],
+    check: v => ({ s: chkF(v.s, [e.s]) }),
+    answer: e.s
+  };
   return {
     badge: "عناصر جدول",
     prompt: `نام و نماد عنصر با عدد اتمی <div class="big">${toFa(e.z)}</div> چیست؟`,
@@ -333,14 +381,18 @@ const buildBagFor = (mode, c) => {
     MOLAR.forEach(item => types.forEach(t => a.push({ k: "molar", item, t })));
   } else if (mode === "elements") {
     const selected = new Set();
-    if (c.first36) ELEMENTS.forEach(e => selected.add(e.z));
+    if (c.first36) ELEMENTS.filter(e => e.z <= 36).forEach(e => selected.add(e.z));
     for (const group of [1, 2, 13, 14, 15, 16, 17, 18]) {
       if (c["g" + group]) ELEMENTS.filter(e => e.groups.includes(group)).forEach(e => selected.add(e.z));
     }
     if (c.tm4) ELEMENTS.filter(e => e.transition4).forEach(e => selected.add(e.z));
+    if (c.manualElements && Array.isArray(c.selectedElements)) {
+      c.selectedElements.forEach(z => selected.add(z));
+    }
     const types = [];
     if (c.nameFromSymbol) types.push("nameFromSymbol");
     if (c.numberFromSymbol) types.push("numberFromSymbol");
+    if (c.symbolFromNumber) types.push("symbolFromNumber");
     if (c.nameAndSymbolFromNumber) types.push("nameAndSymbolFromNumber");
     ELEMENTS.filter(e => selected.has(e.z)).forEach(e => {
       types.forEach(t => a.push({ k: "element", e, t }));
@@ -358,10 +410,12 @@ const buildBag = () => {
     if (c.molar) a.push(...buildBagFor("molar", { nameToMass: true, formulaToMass: true }));
     if (c.comp) a.push(...buildBagFor("comp", { g: true, tm: true, nh4: true, mono: true, nm: true, poly: true }));
     if (c.elements) a.push(...buildBagFor("elements", {
-      first36: true,
+      manualElements: true,
       nameFromSymbol: true,
       numberFromSymbol: true,
-      nameAndSymbolFromNumber: true
+      symbolFromNumber: true,
+      nameAndSymbolFromNumber: true,
+      selectedElements: elementPicker.getSelected()
     }));
     return shuffle(a);
   }
@@ -561,12 +615,14 @@ $("#startMolar").addEventListener("click", () => {
 
 $("#startElements").addEventListener("click", () => {
   const categories = readChips("elementCats"), types = readChips("elementTypes");
-  if (!anyOn(categories) || !anyOn(types)) {
-    flash($(!anyOn(categories) ? "#elementCats" : "#elementTypes"));
+  const selectedElements = elementPicker.getSelected();
+  const needsManualSelection = categories.manualElements;
+  if (!anyOn(categories) || !anyOn(types) || (needsManualSelection && !selectedElements.length)) {
+    flash(!anyOn(categories) ? $("#elementCats") : !anyOn(types) ? $("#elementTypes") : $(".element-picker-launcher"));
     return;
   }
   saveCfg();
-  start("elements", Object.assign({}, categories, types));
+  start("elements", Object.assign({}, categories, types, { selectedElements }));
 });
 
 $("#startMixed").addEventListener("click", () => {
