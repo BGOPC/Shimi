@@ -208,7 +208,7 @@ function layoutGraph(graph) {
   }
   return { atoms, bonds };
 }
-(atom, graph) {
+function implicitHydrogens(atom, graph) {
   const valence = { C: 4, O: 2, N: 3, S: 2, F: 1, Cl: 1, Br: 1 }[atom.element];
   if (!valence) return 0;
   const used = graph.bonds.filter(b => b.a === atom.id || b.b === atom.id).reduce((sum, b) => sum + b.order, 0);
