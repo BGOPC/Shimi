@@ -604,7 +604,7 @@ const readHydroConfig = () => {
   const alkylOnly = !!extra.alkylOnly;
   const selectedTypes = readChips("hydroTypes");
   return {
-    types: alkylOnly ? { structureToName: true } : selectedTypes,
+    types: selectedTypes,
     models: readChips("hydroModels"),
     chains: readChips("hydroChains"),
     cyclic: !!extra.cyclic && !alkylOnly,
