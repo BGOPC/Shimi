@@ -106,6 +106,8 @@
   cursor: pointer;
 }
 .chem-editor-tools button.is-active { border-color: var(--acc); background: var(--acc); color: var(--on-acc); }
+.chem-editor-tools button.chem-select-tool { min-width: 104px; }
+.chem-editor-tools button.chem-select-tool.is-active { box-shadow: 0 0 0 2px rgba(198,160,246,.25); }
 .chem-edit-tools { margin-inline-start: auto; }
 .chem-edit-tools button { font-size: .78rem; font-weight: 600; }
 .chem-editor-canvas-wrap {
