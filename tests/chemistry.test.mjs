@@ -73,7 +73,7 @@ test("interactive editor layout preserves placed atoms and lays out text-entered
   assert.equal(laidOut.bonds.length, textGraph.bonds.length);
   assert.ok(laidOut.atoms.every(atom => Number.isFinite(atom.x) && Number.isFinite(atom.y)));
   assert.ok(new Set(laidOut.atoms.map(atom => atom.y)).size > 1, JSON.stringify(laidOut.atoms));
-  assert.ok(textGraph.atoms.every(atom => atom.x === undefined && atom.y === undefined));
+  assert.ok(textGraph.atoms.every(atom => atom.x === null && atom.y === null));
 
   const ring = layoutEditorGraph(parseStructure("C1CCCCC1"));
   assert.ok(ring.atoms.every(atom => Number.isFinite(atom.x) && Number.isFinite(atom.y)));
