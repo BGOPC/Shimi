@@ -742,6 +742,7 @@ export function mountStructureEditor(container) {
   let source = "";
   let parseError = "";
   let dragging = null;
+  let suppressCanvasClick = false;
   const atomById = id => graph.atoms.find(a => a.id === id);
   const tell = message => { status.textContent = message; };
   const serialize = () => {
@@ -856,6 +857,7 @@ export function mountStructureEditor(container) {
     graph = { atoms: [], bonds: [] }; selected = []; source = ""; text.value = ""; parseError = ""; render(); tell("صفحه پاک شد.");
   });
   canvas.addEventListener("click", event => {
+    if (suppressCanvasClick) { suppressCanvasClick = false; return; }
     if (event.target.closest("[data-atom-id]")) return;
     if (activeMode !== "add") {
       if (selected.length) { selected = []; render(); }
@@ -880,10 +882,6 @@ export function mountStructureEditor(container) {
     if (selected.length === 2) tell("دو اتم موجود انتخاب شدند؛ نوع پیوند را برای اتصال یا تغییر پیوند بزن.");
     else tell(selected.length ? "اتم اول انتخاب شد؛ اتم دوم را انتخاب کن." : "انتخاب اتم لغو شد.");
   };
-  canvas.addEventListener("click", event => {
-    const node = event.target.closest("[data-atom-id]");
-    if (node && activeMode === "select") selectAtom(Number(node.dataset.atomId));
-  });
   canvas.addEventListener("keydown", event => {
     if (event.key !== "Enter" && event.key !== " ") return;
     const node = event.target.closest("[data-atom-id]");
@@ -894,6 +892,12 @@ export function mountStructureEditor(container) {
   canvas.addEventListener("pointerdown", event => {
     const node = event.target.closest("[data-atom-id]");
     if (!node || event.button !== 0) return;
+    if (activeMode === "select") {
+      event.preventDefault();
+      suppressCanvasClick = true;
+      selectAtom(Number(node.dataset.atomId));
+      return;
+    }
     dragging = Number(node.dataset.atomId);
     canvas.setPointerCapture(event.pointerId);
   });
