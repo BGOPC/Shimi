@@ -1,5 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import {
   parseStructure,
   sameStructure,
@@ -9,6 +10,20 @@ import {
   makeChemistryQuestion,
   structureEditorMarkup
 } from "../src/chemistry.js";
+
+
+test("home screen closes before the quiz screen and quiz controls are inside #quiz", () => {
+  const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
+  assert.match(
+    html,
+    /id="mobile-chem-mixed-content"[\\s\\S]*?<\\/div>\\s*<\\/div>\\s*<\\/div>\\s*<\\/section>\\s*<section id="quiz" class="screen">/
+  );
+  assert.equal((html.match(/<section id="quiz" class="screen">/g) || []).length, 1);
+  assert.match(html, /<section id="quiz" class="screen">[\\s\\S]*?id="qPrompt"/);
+  assert.match(html, /<section id="quiz" class="screen">[\\s\\S]*?id="fields"/);
+  assert.doesNotMatch(html, /\\ns="screen">/);
+  assert.match(html, /<section id="summary" class="screen">/);
+});
 
 test("SMILES-like parser handles chains, branches, multiple bonds and rings", () => {
   const chain = parseStructure("C-C=C");
