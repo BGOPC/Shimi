@@ -186,11 +186,15 @@ h2{font-size:1.3rem;font-weight:800}
 
 main{
   width:100%;
-  max-width:1480px;
+  max-width:none;
   margin:0 auto;
-  padding:clamp(16px,2vw,28px) clamp(12px,2vw,30px) max(32px,env(safe-area-inset-bottom));
+  padding:clamp(14px,1vw,22px) clamp(12px,1.25vw,26px) max(32px,env(safe-area-inset-bottom));
 }
-#quiz,#summary{max-width:920px;margin:0 auto}
+#quiz,#summary{
+  width:100%;
+  max-width:none;
+  margin:0 auto;
+}
 #home .hero{margin:8px 0 18px}
 .home-grid{
   display:grid;
@@ -245,7 +249,7 @@ main{
 .global-timer-toggle span{font-size:.95rem;font-weight:650}
 #elementCats,#elementTypes,#molarTypes{gap:8px}
 @media (min-width:1700px){
-  main{max-width:1600px}
+  main{max-width:none}
   .home-grid{gap:22px}
 }
 @media (max-width:760px){
