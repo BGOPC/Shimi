@@ -508,13 +508,13 @@ function generatedAlkylNamingMolecules() {
     for (let locant = 4; locant <= parentLength - 3; locant++) positions.push(locant, locant);
     const branchCount = Math.min(3 + rnd(3), positions.length, 18 - parentLength);
     const branches = [];
-    let extraCarbons = 0;
-    for (let count = 0; count < branchCount; count++) {
+    let remainingCarbons = 18 - parentLength;
+    for (let count = 0; count < branchCount && remainingCarbons > 0; count++) {
       const slot = rnd(positions.length);
       const locant = positions.splice(slot, 1)[0];
       let size = 1 + rnd(3);
-      if (extraCarbons + size > 18 - parentLength) size = 1;
-      extraCarbons += size;
+      if (size > remainingCarbons) size = 1;
+      remainingCarbons -= size;
       branches.push({ locant, size });
     }
     const molecule = makeAlkylNamingMolecule(parentLength, branches);
