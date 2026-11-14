@@ -1,0 +1,722 @@
+const GROUPS = [
+  { id: "aldehyde", group: "آلدهیدی", family: "آلدهید", smiles: "[H]C(=O)R", aliases: ["گروه آلدهیدی", "الدئیدی", "گروه الدئیدی"] },
+  { id: "ketone", group: "کربونیل", family: "کتون", smiles: "RC(=O)R", aliases: ["کربنیل", "گروه کربونیل", "گروه کربنیل"] },
+  { id: "alcohol", group: "هیدروکسیل", family: "الکل", smiles: "RO[H]", aliases: ["گروه هیدروکسیل"] },
+  { id: "ether", group: "اتری", family: "اتر", smiles: "ROR", aliases: ["گروه اتری"] },
+  { id: "carboxyl", group: "کربوکسیل", family: "اسید کربوکسیلیک", smiles: "RC(=O)O[H]", aliases: ["گروه کربوکسیل", "کربوکسیلیک"] },
+  { id: "ester", group: "استری", family: "استر", smiles: "RC(=O)OR", aliases: ["گروه استری"] },
+  { id: "amine", group: "آمینی", family: "آمین", smiles: "RNR", aliases: ["گروه آمینی"] },
+  { id: "amide", group: "آمیدی", family: "آمید", smiles: "RC(=O)N", aliases: ["گروه آمیدی"] }
+];
+
+const HYDROCARBONS = [
+  { smiles: "C", name: "متان", type: "single" },
+  { smiles: "CC", name: "اتان", type: "single" },
+  { smiles: "CCC", name: "پروپان", type: "single" },
+  { smiles: "CCCC", name: "بوتان", type: "single" },
+  { smiles: "CCCCC", name: "پنتان", type: "single" },
+  { smiles: "CCCCCC", name: "هگزان", type: "single" },
+  { smiles: "CCCCCCC", name: "هپتان", type: "single" },
+  { smiles: "CCCCCCCC", name: "اوکتان", type: "single" },
+  { smiles: "CCCCCCCCC", name: "نونان", type: "single" },
+  { smiles: "CCCCCCCCCC", name: "دکان", type: "single" },
+  { smiles: "C=C", name: "اتن", type: "single" },
+  { smiles: "C=CC", name: "پروپن", type: "single" },
+  { smiles: "CC=CC", name: "بوت-۲-ان", type: "single" },
+  { smiles: "C=CCCC", name: "پنت-۱-ان", type: "single" },
+  { smiles: "C#C", name: "اتین", type: "single" },
+  { smiles: "C#CC", name: "پروپین", type: "single" },
+  { smiles: "CC#CC", name: "بوت-۲-ین", type: "single" },
+  { smiles: "CC(C)C", name: "۲-متیل‌پروپان", type: "multiple" },
+  { smiles: "CCC(C)C", name: "۲-متیل‌بوتان", type: "multiple" },
+  { smiles: "CC(C)CCC", name: "۲-متیل‌پنتان", type: "multiple" },
+  { smiles: "CCCC(C)CC", name: "۳-متیل‌هگزان", type: "multiple" },
+  { smiles: "CC(C)C(C)C", name: "۲،۳-دی‌متیل‌بوتان", type: "multiple" },
+  { smiles: "CC(C)(C)C", name: "۲،۲-دی‌متیل‌پروپان", type: "multiple" },
+  { smiles: "CCC(C)(C)CC", name: "۳،۳-دی‌متیل‌پنتان", type: "multiple" },
+  { smiles: "C1CC1", name: "سیکلوپروپان", type: "cyclic" },
+  { smiles: "C1CCC1", name: "سیکلوبوتان", type: "cyclic" },
+  { smiles: "C1CCCC1", name: "سیکلوپنتان", type: "cyclic" },
+  { smiles: "C1CCCCC1", name: "سیکلوهگزان", type: "cyclic" },
+  { smiles: "C1CCCCCC1", name: "سیکلوهپتان", type: "cyclic" },
+  { smiles: "C1CCCCCCC1", name: "سیکلو‌اوکتان", type: "cyclic" },
+  { smiles: "C1CCCCCCCC1", name: "سیکلونونان", type: "cyclic" },
+  { smiles: "C1CCCCCCCCC1", name: "سیکلودکان", type: "cyclic" },
+  { smiles: "C1=CC=CC=C1", name: "بنزن", type: "aromatic" }
+];
+
+const FUNCTIONAL_COMPOUNDS = [
+  { smiles: "CC=O", name: "اتانال", groups: ["aldehyde"] },
+  { smiles: "CCC=O", name: "پروپانال", groups: ["aldehyde"] },
+  { smiles: "CC(=O)C", name: "پروپانون", groups: ["ketone"] },
+  { smiles: "CC(=O)CC", name: "بوتان-۲-اون", groups: ["ketone"] },
+  { smiles: "CCO", name: "اتانول", groups: ["alcohol"] },
+  { smiles: "CCCO", name: "پروپان-۱-ول", groups: ["alcohol"] },
+  { smiles: "COC", name: "دی‌متیل اتر", groups: ["ether"] },
+  { smiles: "CCOC", name: "متیل اتیل اتر", groups: ["ether"] },
+  { smiles: "CC(=O)O", name: "اتانوئیک اسید", groups: ["carboxyl"] },
+  { smiles: "CCC(=O)O", name: "پروپانوئیک اسید", groups: ["carboxyl"] },
+  { smiles: "CC(=O)OC", name: "متیل اتانوات", groups: ["ester"] },
+  { smiles: "CC(=O)OCC", name: "اتیل اتانوات", groups: ["ester"] },
+  { smiles: "CN", name: "متیل‌آمین", groups: ["amine"] },
+  { smiles: "CCN", name: "اتیل‌آمین", groups: ["amine"] },
+  { smiles: "CC(=O)N", name: "اتان‌آمید", groups: ["amide"] },
+  { smiles: "CCC(=O)N", name: "پروپان‌آمید", groups: ["amide"] },
+  { smiles: "NCCO", name: "آمینواتانول", groups: ["amine", "alcohol"] },
+  { smiles: "NCC(=O)O", name: "گلیسین", groups: ["amine", "carboxyl"] },
+  { smiles: "O=CCO", name: "هیدروکسی‌اتانال", groups: ["aldehyde", "alcohol"] },
+  { smiles: "CC(=O)CCO", name: "هیدروکسی‌بوتانون", groups: ["ketone", "alcohol"] }
+];
+
+const toSub = value => String(value).replace(/\d/g, d => "₀₁₂₃₄₅₆₇₈₉"[Number(d)]);
+const escapeHtml = value => String(value).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const rnd = length => Math.floor(Math.random() * length);
+const shuffle = values => {
+  const out = [...values];
+  for (let i = out.length - 1; i > 0; i--) {
+    const j = rnd(i + 1);
+    [out[i], out[j]] = [out[j], out[i]];
+  }
+  return out;
+};
+const bondKey = (a, b) => a < b ? `${a}:${b}` : `${b}:${a}`;
+
+export function parseStructure(text) {
+  const source = String(text || "").trim().replace(/[−–—]/g, "-").replace(/\s+/g, "");
+  if (!source) return null;
+  const atoms = [];
+  const bonds = [];
+  const branch = [];
+  const rings = new Map();
+  let current = -1;
+  let pendingBond = 1;
+  let bondPending = false;
+  let index = 0;
+  const addAtom = (element, aromatic = false) => {
+    const id = atoms.length;
+    atoms.push({ id, element, aromatic, x: null, y: null });
+    if (current >= 0) bonds.push({ a: current, b: id, order: pendingBond });
+    current = id;
+    pendingBond = 1;
+    bondPending = false;
+  };
+  while (index < source.length) {
+    const char = source[index];
+    if (char === "-" || char === "=" || char === "#" || char === "≡") {
+      if (current < 0 || bondPending) return null;
+      pendingBond = char === "-" ? 1 : char === "=" ? 2 : 3;
+      bondPending = true;
+      index++;
+      continue;
+    }
+    if (char === "(") { if (current < 0 || bondPending) return null; branch.push(current); index++; continue; }
+    if (char === ")") { if (!branch.length || bondPending) return null; current = branch.pop(); index++; continue; }
+    if (/[0-9]/.test(char)) {
+      if (current < 0) return null;
+      if (rings.has(char)) {
+        const other = rings.get(char);
+        bonds.push({ a: other.atom, b: current, order: bondPending ? pendingBond : other.order });
+        rings.delete(char);
+      } else rings.set(char, { atom: current, order: pendingBond });
+      pendingBond = 1;
+      bondPending = false;
+      index++;
+      continue;
+    }
+    if (char === "[") {
+      const end = source.indexOf("]", index + 1);
+      if (end < 0) return null;
+      const token = source.slice(index + 1, end);
+      const match = token.match(/^(Cl|Br|[A-Z][a-z]?|[a-z]|R|\*)$/);
+      if (!match) return null;
+      const raw = match[1];
+      addAtom(raw === "*" ? "R" : raw.toUpperCase() === "R" ? "R" : raw[0].toUpperCase() + raw.slice(1).toLowerCase(), raw === raw.toLowerCase() && raw !== "r");
+      index = end + 1;
+      continue;
+    }
+    const token = source.slice(index).match(/^(Cl|Br|[A-Z][a-z]?|[a-z]|R)/);
+    if (!token) return null;
+    const raw = token[1];
+    const aromatic = raw.length === 1 && raw === raw.toLowerCase();
+    const element = raw === "R" || raw === "r" ? "R" : raw[0].toUpperCase() + raw.slice(1).toLowerCase();
+    if (!["C", "O", "N", "S", "F", "Cl", "Br", "H", "R"].includes(element)) return null;
+    addAtom(element, aromatic);
+    index += raw.length;
+  }
+  if (!atoms.length || branch.length || rings.size || bondPending) return null;
+  const seen = new Set();
+  for (const bond of bonds) {
+    const key = bondKey(bond.a, bond.b);
+    if (seen.has(key) || bond.a === bond.b || bond.order < 1 || bond.order > 3) return null;
+    seen.add(key);
+  }
+  return { atoms, bonds };
+}
+
+function layoutGraph(graph) {
+  const atoms = graph.atoms.map(atom => ({ ...atom }));
+  const bonds = graph.bonds;
+  const adjacency = atoms.map(() => []);
+  bonds.forEach(b => { adjacency[b.a].push(b.b); adjacency[b.b].push(b.a); });
+  if (atoms.length > 2 && bonds.length === atoms.length && adjacency.every(list => list.length === 2) && atoms.every(atom => !Number.isFinite(atom.x) || !Number.isFinite(atom.y))) {
+    const radius = Math.max(45, Math.min(92, atoms.length * 13));
+    atoms.forEach((atom, index) => {
+      const angle = -Math.PI / 2 + index * Math.PI * 2 / atoms.length;
+      atom.x = 360 + Math.cos(angle) * radius;
+      atom.y = 122 + Math.sin(angle) * radius;
+    });
+    return { atoms, bonds };
+  }
+  const assigned = new Set();
+  const roots = [];
+  for (let i = 0; i < atoms.length; i++) {
+    if (assigned.has(i)) continue;
+    roots.push(i);
+    const queue = [{ id: i, parent: -1, depth: 0, lane: 0 }];
+    assigned.add(i);
+    while (queue.length) {
+      const current = queue.shift();
+      const node = atoms[current.id];
+      if (!Number.isFinite(node.x) || !Number.isFinite(node.y)) {
+        node.x = 54 + current.depth * 74;
+        node.y = 96 + current.lane * 55;
+      }
+      const children = adjacency[current.id].filter(id => id !== current.parent && !assigned.has(id));
+      children.forEach((child, k) => {
+        assigned.add(child);
+        const lane = current.lane + (k - (children.length - 1) / 2);
+        queue.push({ id: child, parent: current.id, depth: current.depth + 1, lane });
+      });
+    }
+  }
+  return { atoms, bonds };
+}
+
+function implicitHydrogens(atom, graph) {
+  const valence = { C: 4, O: 2, N: 3, S: 2, F: 1, Cl: 1, Br: 1 }[atom.element];
+  if (!valence) return 0;
+  const used = graph.bonds.filter(b => b.a === atom.id || b.b === atom.id).reduce((sum, b) => sum + b.order, 0);
+  return Math.max(0, valence - used);
+}
+
+export function renderMoleculeSvg(input, mode = "structural", className = "molecule-preview") {
+  const graph = typeof input === "string" ? parseStructure(input) : input;
+  if (!graph || !graph.atoms.length) return "<div class=\"chem-empty\">ساختار قابل نمایش نیست</div>";
+  const positioned = layoutGraph(graph);
+  const xs = positioned.atoms.map(a => a.x);
+  const ys = positioned.atoms.map(a => a.y);
+  const minX = Math.min(...xs) - 34, maxX = Math.max(...xs) + 34;
+  const minY = Math.min(...ys) - 36, maxY = Math.max(...ys) + 36;
+  const width = Math.max(150, maxX - minX), height = Math.max(110, maxY - minY);
+  const bondMarkup = positioned.bonds.map(b => {
+    const a = positioned.atoms[b.a], c = positioned.atoms[b.b];
+    const dx = c.x - a.x, dy = c.y - a.y;
+    const length = Math.max(1, Math.hypot(dx, dy));
+    const ox = -dy / length * 4, oy = dx / length * 4;
+    const lines = [];
+    for (let k = 0; k < b.order; k++) {
+      const offset = (k - (b.order - 1) / 2) * 7;
+      lines.push(`<line x1="${a.x + ox * offset / 4}" y1="${a.y + oy * offset / 4}" x2="${c.x + ox * offset / 4}" y2="${c.y + oy * offset / 4}" />`);
+    }
+    return lines.join("");
+  }).join("");
+  const atomMarkup = positioned.atoms.map(atom => {
+    const showCarbon = mode !== "skeletal" || atom.element !== "C" || graph.atoms.length === 1;
+    const hydrogenCount = mode === "explicit" ? implicitHydrogens(atom, graph) : 0;
+    const label = atom.element + (hydrogenCount ? `H${toSub(hydrogenCount)}` : "");
+    if (!showCarbon) return "";
+    return `<text class="molecule-atom atom-${atom.element.toLowerCase()}" x="${atom.x}" y="${atom.y + 6}" text-anchor="middle">${escapeHtml(label)}</text>`;
+  }).join("");
+  return `<svg class="${className}" viewBox="${minX} ${minY} ${width} ${height}" role="img" aria-label="ساختار مولکولی"><g class="molecule-bonds">${bondMarkup}</g><g class="molecule-atoms">${atomMarkup}</g></svg>`;
+}
+
+function graphWithoutHydrogen(graph) {
+  const kept = graph.atoms.filter(a => a.element !== "H");
+  const ids = new Map(kept.map((a, i) => [a.id, i]));
+  return {
+    atoms: kept.map((a, id) => ({ ...a, id })),
+    bonds: graph.bonds.filter(b => ids.has(b.a) && ids.has(b.b)).map(b => ({ ...b, a: ids.get(b.a), b: ids.get(b.b) }))
+  };
+}
+
+export function sameStructure(first, second) {
+  if (!first || !second) return false;
+  const a = graphWithoutHydrogen(first), b = graphWithoutHydrogen(second);
+  if (a.atoms.length !== b.atoms.length || a.bonds.length !== b.bonds.length) return false;
+  const edgesA = new Map(a.bonds.map(x => [bondKey(x.a, x.b), x.order]));
+  const edgesB = new Map(b.bonds.map(x => [bondKey(x.a, x.b), x.order]));
+  const adj = graph => graph.atoms.map((_, i) => graph.bonds.filter(e => e.a === i || e.b === i));
+  const degreeA = adj(a), degreeB = adj(b);
+  const candidates = a.atoms.map(atom => b.atoms.map((other, id) => ({ other, id })).filter(x => (x.other.element === atom.element || atom.element === "R" || x.other.element === "R") && degreeA[atom.id].length === degreeB[x.id].length));
+  const order = a.atoms.map((_, i) => i).sort((x, y) => candidates[x].length - candidates[y].length);
+  const mapping = new Map(), used = new Set();
+  const search = depth => {
+    if (depth === order.length) return true;
+    const id = order[depth];
+    for (const candidate of candidates[id]) {
+      const target = candidate.id;
+      if (used.has(target)) continue;
+      let valid = true;
+      for (const [other, mapped] of mapping) {
+        const e1 = edgesA.get(bondKey(id, other));
+        const e2 = edgesB.get(bondKey(target, mapped));
+        if (e1 !== e2) { valid = false; break; }
+      }
+      if (!valid) continue;
+      mapping.set(id, target); used.add(target);
+      if (search(depth + 1)) return true;
+      mapping.delete(id); used.delete(target);
+    }
+    return false;
+  };
+  return search(0);
+}
+
+function normalizeName(value) {
+  return String(value || "").toLowerCase()
+    .replace(/[۰-۹]/g, digit => String("۰۱۲۳۴۵۶۷۸۹".indexOf(digit)))
+    .replace(/[٠-٩]/g, digit => String("٠١٢٣٤٥٦٧٨٩".indexOf(digit)))
+    .replace(/[\u064b-\u065f\u0670\u0640]/g, "")
+    .replace(/[يى]/g, "ی").replace(/ك/g, "ک").replace(/[آأإ]/g, "ا")
+    .replace(/[\s\u200c\u200d\u200e\u200f]/g, "")
+    .replace(/[()\[\]{}،,._–—-]/g, "");
+}
+
+function compareNames(value, aliases) {
+  const normalized = normalizeName(value);
+  if (!normalized) return { ok: false, msg: "پاسخی وارد نکردی" };
+  return aliases.some(name => normalizeName(name) === normalized) ? { ok: true } : { ok: false, msg: "نام واردشده درست نیست" };
+}
+
+export function detectFunctionalGroups(graph) {
+  if (!graph) return [];
+  const atoms = graph.atoms;
+  const neighbors = id => graph.bonds.filter(b => b.a === id || b.b === id).map(b => ({ atom: atoms[b.a === id ? b.b : b.a], order: b.order }));
+  const found = new Set();
+  const protectedAtoms = new Set();
+  for (const atom of atoms.filter(a => a.element === "C")) {
+    const around = neighbors(atom.id);
+    const doubleO = around.find(x => x.atom.element === "O" && x.order === 2);
+    if (!doubleO) continue;
+    const singles = around.filter(x => x.order === 1 && x.atom.id !== doubleO.atom.id);
+    const oxygen = singles.find(x => x.atom.element === "O");
+    const nitrogen = singles.find(x => x.atom.element === "N");
+    const carbonNeighbors = singles.filter(x => x.atom.element === "C");
+    if (nitrogen) {
+      found.add("amide");
+      protectedAtoms.add(nitrogen.atom.id);
+    } else if (oxygen) {
+      const oxygenNeighbors = neighbors(oxygen.atom.id).filter(x => x.atom.id !== atom.id);
+      if (oxygenNeighbors.some(x => x.atom.element === "C")) found.add("ester");
+      else found.add("carboxyl");
+      protectedAtoms.add(oxygen.atom.id);
+    } else if (carbonNeighbors.length >= 2) found.add("ketone");
+    else found.add("aldehyde");
+  }
+  for (const atom of atoms) {
+    const around = neighbors(atom.id);
+    if (atom.element === "O" && around.some(x => x.atom.element === "C") && !protectedAtoms.has(atom.id)) {
+      const carbon = around.find(x => x.atom.element === "C").atom;
+      const attachedOnlyAsHydroxyl = around.length === 1 || (around.length === 2 && around.some(x => x.atom.element === "H"));
+      const carbonylBond = neighbors(carbon.id).some(x => x.atom.element === "O" && x.order === 2);
+      if (attachedOnlyAsHydroxyl && !carbonylBond) found.add("alcohol");
+    }
+    if (atom.element === "O" && around.length === 2 && around.every(x => x.atom.element === "C") && !protectedAtoms.has(atom.id)) {
+      const esterO = around.some(x => neighbors(x.atom.id).some(y => y.atom.id !== atom.id && y.atom.element === "O" && y.order === 2));
+      if (!esterO) found.add("ether");
+    }
+    if (atom.element === "N" && !protectedAtoms.has(atom.id) && around.some(x => x.atom.element === "C")) found.add("amine");
+  }
+  return GROUPS.map(g => g.id).filter(id => found.has(id));
+}
+
+function groupAliases(group) {
+  const item = GROUPS.find(g => g.id === group);
+  return item ? [item.group, ...item.aliases] : [];
+}
+
+function structureField() {
+  return { id: "structure", label: "ساختار را رسم کن یا به‌صورت متنی بنویس", type: "structure" };
+}
+const nameField = (id = "name", label = "نام ترکیب") => ({ id, label, ph: "نام فارسی ترکیب", dir: "rtl" });
+const multiField = (id = "groups") => ({ id, label: "گروه‌های عاملی موجود", type: "multi", options: GROUPS.map(g => ({ value: g.id, label: g.group })) });
+const choiceField = (id, options) => ({ id, label: "یک گزینه را انتخاب کن", type: "choice", options });
+const groupStructure = group => {
+  const shapes = {
+    aldehyde: "[H]C(=O)R",
+    ketone: "RC(=O)R",
+    alcohol: "RO[H]",
+    ether: "ROR",
+    carboxyl: "RC(=O)O[H]",
+    ester: "RC(=O)OR",
+    amine: "RNR",
+    amide: "RC(=O)N"
+  };
+  return parseStructure(shapes[group] || "C");
+};
+
+function buildHydrocarbonBag(cfg = {}) {
+  const questions = [];
+  const types = cfg.types || {};
+  const styles = ["skeletal", "structural", "explicit"].filter(style => cfg.models?.[style]);
+  const includeSingle = !!cfg.chains?.single;
+  const includeMultiple = !!cfg.chains?.multiple;
+  const includeCyclic = !!cfg.cyclic;
+  HYDROCARBONS.forEach(entry => {
+    if (entry.type === "single" && !includeSingle) return;
+    if (entry.type === "multiple" && !includeMultiple) return;
+    if ((entry.type === "cyclic" || entry.type === "aromatic") && !includeCyclic) return;
+    const graph = parseStructure(entry.smiles);
+    if (types.nameToStructure) questions.push({ k: "chem", kind: "hydroDraw", molecule: entry, graph });
+    if (types.structureToName) {
+      (styles.length ? styles : ["structural"]).forEach(style => questions.push({ k: "chem", kind: "hydroName", molecule: entry, graph, style }));
+    }
+  });
+  if (includeCyclic) {
+    const aromatic = HYDROCARBONS.find(x => x.type === "aromatic");
+    const distractors = ["C1CCCCC1", "CC=CC", "CC(C)C"].map(smiles => ({ smiles, graph: parseStructure(smiles) }));
+    if (aromatic) questions.push({ k: "chem", kind: "aromatic", molecule: aromatic, graph: parseStructure(aromatic.smiles), options: shuffle([{ smiles: aromatic.smiles, name: "بنزن", correct: true }, ...distractors.map((d, i) => ({ smiles: d.smiles, name: ["سیکلوهگزان", "بوت-۲-ان", "۲-متیل‌پروپان"][i], correct: false }))]) });
+  }
+  return questions;
+}
+
+function buildFunctionalBag(cfg = {}) {
+  const types = cfg.types || {};
+  const questions = [];
+  if (types.identify) FUNCTIONAL_COMPOUNDS.forEach(compound => questions.push({ k: "chem", kind: "fgIdentify", compound, graph: parseStructure(compound.smiles) }));
+  if (types.structureToName) GROUPS.forEach(group => questions.push({ k: "chem", kind: "fgShapeName", group, graph: groupStructure(group.id) }));
+  if (types.nameToStructure) GROUPS.forEach(group => questions.push({ k: "chem", kind: "fgNameShape", group, graph: groupStructure(group.id) }));
+  if (types.nameToFamily) GROUPS.forEach(group => questions.push({ k: "chem", kind: "fgNameFamily", group }));
+  if (types.shapeToFamily) GROUPS.forEach(group => questions.push({ k: "chem", kind: "fgShapeFamily", group, graph: groupStructure(group.id) }));
+  return questions;
+}
+
+function buildIntegratedBag(config = {}) {
+  const compounds = [];
+  const hydro = config.hydro || {};
+  const hydroTypes = hydro.types || {};
+  const hydroChains = hydro.chains || {};
+  const showHydro = !!hydroTypes.structureToName;
+  const styles = ["skeletal", "structural", "explicit"].filter(style => hydro.models?.[style]);
+  if (showHydro && styles.length) {
+    HYDROCARBONS.forEach(entry => {
+      if (entry.type === "single" && !hydroChains.single) return;
+      if (entry.type === "multiple" && !hydroChains.multiple) return;
+      if ((entry.type === "cyclic" || entry.type === "aromatic") && !hydro.cyclic) return;
+      const molecule = { ...entry, groups: [] };
+      styles.forEach(style => compounds.push({ molecule, style }));
+    });
+  }
+  FUNCTIONAL_COMPOUNDS.forEach(compound => compounds.push({ molecule: compound, style: "structural" }));
+  const questions = compounds.map(({ molecule, style }) => ({ k: "chem", kind: "integrated", compound: molecule, graph: parseStructure(molecule.smiles), style }));
+  if (hydro.cyclic) {
+    const aromatic = HYDROCARBONS.find(entry => entry.type === "aromatic");
+    if (aromatic) {
+      const distractors = ["C1CCCCC1", "CC=CC", "CC(C)C"].map(smiles => ({ smiles, graph: parseStructure(smiles) }));
+      questions.push({ k: "chem", kind: "aromatic", molecule: aromatic, graph: parseStructure(aromatic.smiles), options: shuffle([{ smiles: aromatic.smiles, name: "بنزن", correct: true }, ...distractors.map((d, i) => ({ smiles: d.smiles, name: ["سیکلوهگزان", "بوت-۲-ان", "۲-متیل‌پروپان"][i], correct: false }))]) });
+    }
+  }
+  return questions;
+}
+
+export function buildChemistryBag(mode, config = {}) {
+  if (mode === "hydrocarbon") return buildHydrocarbonBag(config);
+  if (mode === "functional") return buildFunctionalBag(config);
+  if (mode === "chemMixed") {
+    const result = [];
+    if (config.hydro) result.push(...buildHydrocarbonBag(config.hydro));
+    if (config.functional) result.push(...buildFunctionalBag(config.functional));
+    if (config.integrated) result.push(...buildIntegratedBag({ hydro: config.hydroConfig, functional: config.functionalConfig }));
+    return result;
+  }
+  return [];
+}
+
+export function makeChemistryQuestion(data) {
+  const moleculeName = data.molecule?.name || data.compound?.name || "";
+  if (data.kind === "hydroDraw") return {
+    badge: "نام‌گذاری هیدروکربن‌ها",
+    prompt: `ساختار مولکول <b>${escapeHtml(moleculeName)}</b> را رسم کن یا با نمادگذاری توضیح‌داده‌شده بنویس`,
+    fields: [structureField()],
+    editor: true,
+    check: values => ({ structure: values.structure?.graph && sameStructure(values.structure.graph, data.graph) ? { ok: true } : { ok: false, msg: values.structure?.error || "ساختار با پاسخ درست یکسان نیست" } }),
+    answer: renderMoleculeSvg(data.graph, "structural", "molecule-answer") + `<div class="chem-answer-name">${escapeHtml(moleculeName)}</div>`
+  };
+  if (data.kind === "hydroName") return {
+    badge: "نام‌گذاری هیدروکربن‌ها",
+    prompt: `نام این هیدروکربن را بنویس${renderMoleculeSvg(data.graph, data.style, "molecule-question")}`,
+    fields: [nameField()],
+    check: values => ({ name: compareNames(values.name, [moleculeName]) }),
+    answer: renderMoleculeSvg(data.graph, "structural", "molecule-answer") + `<div class="chem-answer-name">${escapeHtml(moleculeName)}</div>`
+  };
+  if (data.kind === "aromatic") {
+    const options = data.options.map((option, index) => ({ value: option.correct ? "correct" : `wrong${index}`, label: option.name, html: renderMoleculeSvg(option.smiles, "structural", "aromatic-choice-svg") }));
+    return {
+      badge: "ترکیبات حلقوی و آروماتیک",
+      prompt: "کدام‌یک از ساختارهای زیر حلقهٔ بنزن دارد و آروماتیک است؟",
+      fields: [choiceField("choice", options)],
+      check: values => ({ choice: values.choice === "correct" ? { ok: true } : { ok: false, msg: "ساختار انتخاب‌شده حلقهٔ بنزن ندارد" } }),
+      answer: "بنزن" + renderMoleculeSvg("C1=CC=CC=C1", "structural", "molecule-answer")
+    };
+  }
+  if (data.kind === "fgIdentify") {
+    return {
+      badge: "گروه‌های عاملی",
+      prompt: `این ترکیب چه گروه‌های عاملی‌ای دارد؟${renderMoleculeSvg(data.graph, "structural", "molecule-question")}`,
+      fields: [multiField()],
+      check: values => {
+        const expected = [...data.compound.groups].sort();
+        const actual = [...(values.groups || [])].sort();
+        const correct = expected.length === actual.length && expected.every((value, i) => value === actual[i]);
+        return { groups: correct ? { ok: true } : { ok: false, msg: "گروه‌های انتخاب‌شده کامل یا دقیق نیستند" } };
+      },
+      answer: renderMoleculeSvg(data.graph, "structural", "molecule-answer") + `<div class="chem-answer-name">${escapeHtml(data.compound.groups.length ? data.compound.groups.map(id => GROUPS.find(g => g.id === id).group).join("، ") : "هیچ گروه عاملی ندارد")}</div>`
+    };
+  }
+  if (data.kind === "fgShapeName") return {
+    badge: "گروه‌های عاملی",
+    prompt: `نام این گروه عاملی چیست؟${renderMoleculeSvg(data.graph, "structural", "molecule-question")}`,
+    fields: [nameField("name", "نام گروه عاملی")],
+    check: values => ({ name: compareNames(values.name, groupAliases(data.group.id)) }),
+    answer: renderMoleculeSvg(data.graph, "structural", "molecule-answer") + `<div class="chem-answer-name">${escapeHtml(data.group.group)}</div>`
+  };
+  if (data.kind === "fgNameShape") return {
+    badge: "گروه‌های عاملی",
+    prompt: `ساختار گروه <b>${escapeHtml(data.group.group)}</b> را با اتم‌ها و پیوندها رسم کن`,
+    fields: [structureField()],
+    editor: true,
+    check: values => ({ structure: values.structure?.graph && sameStructure(values.structure.graph, data.graph) ? { ok: true } : { ok: false, msg: values.structure?.error || "اتصال اتم‌ها با ساختار گروه عاملی یکسان نیست" } }),
+    answer: renderMoleculeSvg(data.graph, "structural", "molecule-answer") + `<div class="chem-answer-name">${escapeHtml(data.group.family)}</div>`
+  };
+  if (data.kind === "fgNameFamily" || data.kind === "fgShapeFamily") {
+    const prompt = data.kind === "fgNameFamily" ? `خانوادهٔ گروه عاملی <b>${escapeHtml(data.group.group)}</b> چیست؟` : `این ساختار متعلق به کدام خانواده است؟${renderMoleculeSvg(data.graph, "structural", "molecule-question")}`;
+    return {
+      badge: "گروه‌های عاملی",
+      prompt,
+      fields: [nameField("name", "نام خانواده")],
+      check: values => ({ name: compareNames(values.name, [data.group.family]) }),
+      answer: renderMoleculeSvg(data.graph, "structural", "molecule-answer") + `<div class="chem-answer-name">${escapeHtml(data.group.family)}</div>`
+    };
+  }
+  if (data.kind === "integrated") {
+    const groups = data.compound.groups || [];
+    const answers = groups.length ? groups.map(id => GROUPS.find(g => g.id === id).group).join("، ") : "ندارد";
+    return {
+      badge: "آزمون جامع شیمی آلی",
+      prompt: `نام این ترکیب و تمام گروه‌های عاملی موجود در آن را مشخص کن${renderMoleculeSvg(data.graph, data.style || "structural", "molecule-question")}`,
+      fields: [nameField(), multiField()],
+      check: values => {
+        const nameResult = compareNames(values.name, [data.compound.name]);
+        const expected = [...groups].sort();
+        const actual = [...(values.groups || [])].sort();
+        const groupResult = expected.length === actual.length && expected.every((value, i) => value === actual[i])
+          ? { ok: true }
+          : { ok: false, msg: "گروه‌های عاملی انتخاب‌شده کامل یا دقیق نیستند" };
+        return { name: nameResult, groups: groupResult };
+      },
+      answer: renderMoleculeSvg(data.graph, data.style || "structural", "molecule-answer") + `<div class="chem-answer-name">${escapeHtml(data.compound.name)} — ${escapeHtml(answers)}</div>`
+    };
+  }
+  return { badge: "شیمی آلی", prompt: "سؤال نامعتبر است", fields: [], check: () => ({}), answer: "" };
+}
+
+export function structureEditorMarkup() {
+  return `<div class="chem-editor">
+    <div class="chem-editor-tools">
+      <div class="chem-atom-tools" role="group" aria-label="افزودن اتم">
+        <button type="button" data-atom="C" class="is-active">C</button>
+        <button type="button" data-atom="O">O</button>
+        <button type="button" data-atom="N">N</button>
+        <button type="button" data-atom="H">H</button>
+        <button type="button" data-atom="R">R</button>
+      </div>
+      <div class="chem-bond-tools" role="group" aria-label="نوع پیوند">
+        <button type="button" data-bond="1" class="is-active">—</button>
+        <button type="button" data-bond="2">═</button>
+        <button type="button" data-bond="3">≡</button>
+      </div>
+      <div class="chem-edit-tools">
+        <button type="button" data-editor-action="delete">حذف اتم</button>
+        <button type="button" data-editor-action="clear">پاک‌کردن</button>
+      </div>
+    </div>
+    <div class="chem-editor-canvas-wrap">
+      <svg class="chem-editor-canvas" viewBox="0 0 720 245" role="img" aria-label="صفحهٔ رسم ساختار مولکولی"><text x="360" y="120" text-anchor="middle" class="chem-editor-empty">برای افزودن اتم، روی صفحه بزن</text></svg>
+    </div>
+    <label class="chem-editor-text-label" for="chem-structure-text">یا ساختار را متنی بنویس</label>
+    <textarea id="chem-structure-text" class="chem-structure-text" rows="2" dir="ltr" spellcheck="false" autocapitalize="off" placeholder="مثلاً C-C(=O)-O یا C1=CC=CC=C1"></textarea>
+    <div class="chem-editor-help">راهنمای نوشتن: از C برای کربن، O برای اکسیژن، N برای نیتروژن، H برای هیدروژن و R برای ادامهٔ زنجیر استفاده کن. پیوند یگانه با -، دوگانه با = و سه‌گانه با # نوشته می‌شود. برای شاخه از پرانتز و برای حلقه از شماره استفاده کن؛ مثلاً C-C-C، C-C(=O)-O، C-C-O یا C1=CC=CC=C1. بین رسم‌کردن و نوشتن متنی فقط یکی کافی است.</div>
+    <small class="chem-editor-status" aria-live="polite">ابتدا اتم‌ها را اضافه کن یا ساختار را در کادر بنویس.</small>
+  </div>`;
+}
+
+export function mountStructureEditor(container) {
+  if (!container) return null;
+  container.innerHTML = structureEditorMarkup();
+  const canvas = container.querySelector(".chem-editor-canvas");
+  const text = container.querySelector(".chem-structure-text");
+  const status = container.querySelector(".chem-editor-status");
+  let graph = { atoms: [], bonds: [] };
+  let selected = [];
+  let activeAtom = "C";
+  let activeBond = 1;
+  let source = "";
+  let parseError = "";
+  let dragging = null;
+  const atomById = id => graph.atoms.find(a => a.id === id);
+  const tell = message => { status.textContent = message; };
+  const serialize = () => {
+    if (!graph.atoms.length) return "";
+    const nodes = graph.atoms;
+    const adjacency = nodes.map(() => []);
+    graph.bonds.forEach(b => { adjacency[b.a].push({ id: b.b, order: b.order }); adjacency[b.b].push({ id: b.a, order: b.order }); });
+    const visited = new Set();
+    const treeEdges = new Set();
+    const ringEdges = [];
+    const walk = (id, parent) => {
+      visited.add(id);
+      for (const edge of adjacency[id]) {
+        if (edge.id === parent) continue;
+        const key = bondKey(id, edge.id);
+        if (!visited.has(edge.id)) { treeEdges.add(key); walk(edge.id, id); }
+        else if (!treeEdges.has(key) && !ringEdges.some(r => r.key === key)) ringEdges.push({ key, a: id, b: edge.id, order: edge.order });
+      }
+    };
+    walk(0, -1);
+    let ringNumber = 1;
+    const rings = nodes.map(() => []);
+    ringEdges.forEach(r => {
+      rings[r.a].push(`${r.order === 1 ? "" : r.order === 2 ? "=" : "#"}${ringNumber}`);
+      rings[r.b].push(`${r.order === 1 ? "" : r.order === 2 ? "=" : "#"}${ringNumber}`);
+      ringNumber++;
+    });
+    const build = (id, parent) => {
+      const atom = nodes[id];
+      const label = atom.aromatic && atom.element === "C" ? "c" : atom.element;
+      const children = adjacency[id].filter(edge => edge.id !== parent && treeEdges.has(bondKey(id, edge.id)));
+      const bondText = order => order === 1 ? "" : order === 2 ? "=" : "#";
+      let result = label + rings[id].join("");
+      children.forEach((child, index) => {
+        const nested = bondText(child.order) + build(child.id, id);
+        result += index < children.length - 1 ? `(${nested})` : nested;
+      });
+      return result;
+    };
+    return build(0, -1);
+  };
+  const render = () => {
+    if (!graph.atoms.length) {
+      canvas.innerHTML = `<text x="360" y="120" text-anchor="middle" class="chem-editor-empty">برای افزودن اتم، روی صفحه بزن</text>`;
+      return;
+    }
+    const positioned = layoutGraph(graph);
+    const bonds = positioned.bonds.map(b => {
+      const a = positioned.atoms[b.a], c = positioned.atoms[b.b];
+      if (!a || !c) return "";
+      const dx = c.x - a.x, dy = c.y - a.y, length = Math.max(1, Math.hypot(dx, dy));
+      const ox = -dy / length * 4, oy = dx / length * 4;
+      return Array.from({ length: b.order }, (_, k) => {
+        const offset = (k - (b.order - 1) / 2) * 7;
+        return `<line x1="${a.x + ox * offset / 4}" y1="${a.y + oy * offset / 4}" x2="${c.x + ox * offset / 4}" y2="${c.y + oy * offset / 4}" />`;
+      }).join("");
+    }).join("");
+    const atoms = positioned.atoms.map(atom => `<g class="chem-editor-atom ${selected.includes(atom.id) ? "is-selected" : ""}" data-atom-id="${atom.id}" tabindex="0" role="button" aria-label="اتم ${atom.element}"><circle cx="${atom.x}" cy="${atom.y}" r="17"></circle><text x="${atom.x}" y="${atom.y + 5}" text-anchor="middle">${escapeHtml(atom.element)}</text></g>`).join("");
+    canvas.innerHTML = `<g class="chem-editor-bonds">${bonds}</g><g class="chem-editor-atoms">${atoms}</g>`;
+  };
+  const syncText = () => {
+    text.value = serialize();
+    source = "draw";
+    parseError = "";
+  };
+  const updateSelectedTools = () => {
+    container.querySelectorAll("[data-atom]").forEach(button => button.classList.toggle("is-active", button.dataset.atom === activeAtom));
+    container.querySelectorAll("[data-bond]").forEach(button => button.classList.toggle("is-active", Number(button.dataset.bond) === activeBond));
+  };
+  container.querySelectorAll("[data-atom]").forEach(button => button.addEventListener("click", () => { activeAtom = button.dataset.atom; updateSelectedTools(); tell(`اتم ${activeAtom} انتخاب شد؛ روی صفحه بزن.`); }));
+  container.querySelectorAll("[data-bond]").forEach(button => button.addEventListener("click", () => {
+    activeBond = Number(button.dataset.bond);
+    updateSelectedTools();
+    if (selected.length === 2) {
+      const [a, b] = selected;
+      const found = graph.bonds.find(edge => bondKey(edge.a, edge.b) === bondKey(a, b));
+      if (found) found.order = activeBond;
+      else graph.bonds.push({ a, b, order: activeBond });
+      selected = [];
+      render(); syncText();
+      tell("پیوند ثبت شد.");
+    } else tell("دو اتم را انتخاب کن و سپس نوع پیوند را بزن.");
+  }));
+  container.querySelector("[data-editor-action=delete]").addEventListener("click", () => {
+    if (!selected.length) return tell("ابتدا یک اتم را انتخاب کن.");
+    const removing = new Set(selected);
+    const kept = graph.atoms.filter(a => !removing.has(a.id));
+    const map = new Map(kept.map((a, i) => [a.id, i]));
+    graph = { atoms: kept.map((a, id) => ({ ...a, id })), bonds: graph.bonds.filter(b => map.has(b.a) && map.has(b.b)).map(b => ({ a: map.get(b.a), b: map.get(b.b), order: b.order })) };
+    selected = []; render(); syncText(); tell("اتم انتخاب‌شده حذف شد.");
+  });
+  container.querySelector("[data-editor-action=clear]").addEventListener("click", () => {
+    graph = { atoms: [], bonds: [] }; selected = []; source = ""; text.value = ""; parseError = ""; render(); tell("صفحه پاک شد.");
+  });
+  canvas.addEventListener("click", event => {
+    if (event.target.closest("[data-atom-id]")) return;
+    if (graph.atoms.length >= 18) return tell("برای جلوگیری از شلوغی، حداکثر ۱۸ اتم قابل افزودن است.");
+    const point = canvas.createSVGPoint();
+    point.x = event.clientX; point.y = event.clientY;
+    const local = point.matrixTransform(canvas.getScreenCTM().inverse());
+    const id = graph.atoms.length;
+    const previous = selected.length === 1 ? selected[0] : null;
+    graph.atoms.push({ id, element: activeAtom, aromatic: false, x: Math.max(24, Math.min(696, local.x)), y: Math.max(24, Math.min(221, local.y)) });
+    selected = previous === null ? [id] : [previous, id];
+    render(); syncText();
+    if (selected.length === 2) tell("دو اتم انتخاب شده‌اند؛ نوع پیوند را انتخاب کن.");
+    else tell(`اتم ${activeAtom} اضافه شد.`);
+  });
+  const selectAtom = id => {
+    if (selected.includes(id)) selected = selected.filter(x => x !== id);
+    else if (selected.length < 2) selected.push(id);
+    else selected = [id];
+    render();
+    if (selected.length === 2) tell("دو اتم انتخاب شده‌اند؛ نوع پیوند را انتخاب کن.");
+    else tell(selected.length ? "اتم اول انتخاب شد؛ اتم دوم را انتخاب کن." : "انتخاب اتم لغو شد.");
+  };
+  canvas.addEventListener("click", event => {
+    const node = event.target.closest("[data-atom-id]");
+    if (node) selectAtom(Number(node.dataset.atomId));
+  });
+  canvas.addEventListener("keydown", event => {
+    if (event.key !== "Enter" && event.key !== " ") return;
+    const node = event.target.closest("[data-atom-id]");
+    if (!node) return;
+    event.preventDefault();
+    selectAtom(Number(node.dataset.atomId));
+  });
+  canvas.addEventListener("pointerdown", event => {
+    const node = event.target.closest("[data-atom-id]");
+    if (!node || event.button !== 0) return;
+    dragging = Number(node.dataset.atomId);
+    canvas.setPointerCapture(event.pointerId);
+  });
+  canvas.addEventListener("pointermove", event => {
+    if (dragging === null) return;
+    const point = canvas.createSVGPoint(); point.x = event.clientX; point.y = event.clientY;
+    const local = point.matrixTransform(canvas.getScreenCTM().inverse());
+    const atom = atomById(dragging);
+    if (atom) { atom.x = Math.max(24, Math.min(696, local.x)); atom.y = Math.max(24, Math.min(221, local.y)); render(); }
+  });
+  canvas.addEventListener("pointerup", () => { if (dragging !== null) { dragging = null; syncText(); } });
+  text.addEventListener("input", () => {
+    source = "text";
+    const parsed = parseStructure(text.value);
+    if (!parsed) { parseError = "ساختار متنی قابل تشخیص نیست؛ از الگوی راهنما استفاده کن."; tell(parseError); return; }
+    if (parsed.atoms.length > 18) { parseError = "حداکثر ۱۸ اتم مجاز است."; tell(parseError); return; }
+    graph = parsed; selected = []; parseError = ""; render(); tell("پیش‌نمایش ساختار به‌روز شد.");
+  });
+  return {
+    getValue: () => ({ graph: source && !parseError ? graph : null, text: text.value, source, error: parseError }),
+    setDisabled: disabled => {
+      container.querySelectorAll("button,textarea").forEach(element => { element.disabled = !!disabled; });
+      canvas.style.pointerEvents = disabled ? "none" : "auto";
+    },
+    destroy: () => { container.innerHTML = ""; }
+  };
+}
