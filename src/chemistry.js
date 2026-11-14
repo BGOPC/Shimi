@@ -378,9 +378,11 @@ const groupStructure = group => {
 const ALKANE_ROOTS = ["", "متان", "اتان", "پروپان", "بوتان", "پنتان", "هگزان", "هپتان", "اوکتان", "نونان", "دکان"];
 const ALKYL_SUBSTITUENTS = {
   1: { key: "methyl", name: "متیل" },
-  2: { key: "ethyl", name: "اتیل" }
+  2: { key: "ethyl", name: "اتیل" },
+  3: { key: "propyl", name: "پروپیل" },
+  4: { key: "butyl", name: "بوتیل" }
 };
-const ALKYL_PREFIXES = ["", "", "دی", "تری", "تترا", "پنتا", "هگزا"];
+const ALKYL_PREFIXES = ["", "", "دی", "تری", "تترا", "پنتا", "هگزا", "هپتا"];
 const persianNumber = value => String(value).replace(/\d/g, digit => "۰۱۲۳۴۵۶۷۸۹"[Number(digit)]);
 
 function compareNumberLists(first, second) {
@@ -492,6 +494,12 @@ function generatedAlkylNamingMolecules() {
     makeAlkylNamingMolecule(10, [
       { locant: 4, size: 2 }, { locant: 4, size: 2 }, { locant: 5, size: 2 },
       { locant: 7, size: 1 }, { locant: 7, size: 1 }
+    ]),
+    makeAlkylNamingMolecule(10, [
+      { locant: 5, size: 3 }, { locant: 7, size: 1 }
+    ]),
+    makeAlkylNamingMolecule(10, [
+      { locant: 5, size: 4 }, { locant: 7, size: 1 }
     ])
   ];
   for (let i = 0; i < 12; i++) {
@@ -504,7 +512,7 @@ function generatedAlkylNamingMolecules() {
     for (let count = 0; count < branchCount; count++) {
       const slot = rnd(positions.length);
       const locant = positions.splice(slot, 1)[0];
-      let size = 1 + rnd(2);
+      let size = 1 + rnd(3);
       if (extraCarbons + size > 18 - parentLength) size = 1;
       extraCarbons += size;
       branches.push({ locant, size });
