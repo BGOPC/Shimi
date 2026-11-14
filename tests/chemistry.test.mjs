@@ -25,7 +25,7 @@ test("home screen closes before the quiz screen and quiz controls are inside #qu
   assert.ok(quizMarkup.includes('id="qPrompt"'));
   assert.ok(quizMarkup.includes('id="fields"'));
   assert.ok(quizMarkup.includes('id="actBtn"'));
-  assert.equal(html.includes('s="screen">'), false);
+  assert.equal(html.includes('\ns="screen">'), false);
 });
 
 test("SMILES-like parser handles chains, branches, multiple bonds and rings", () => {
