@@ -81,6 +81,25 @@ const shuffle = values => {
 };
 const bondKey = (a, b) => a < b ? `${a}:${b}` : `${b}:${a}`;
 
+function clippedBondLines(a, b, order, radiusA, radiusB) {
+  const dx = b.x - a.x, dy = b.y - a.y;
+  const length = Math.max(1, Math.hypot(dx, dy));
+  const ux = dx / length, uy = dy / length;
+  const px = -uy, py = ux;
+  return Array.from({ length: order }, (_, index) => {
+    const offset = (index - (order - 1) / 2) * 6;
+    const sideA = Math.max(-Math.max(0, radiusA - 1), Math.min(Math.max(0, radiusA - 1), offset));
+    const sideB = Math.max(-Math.max(0, radiusB - 1), Math.min(Math.max(0, radiusB - 1), offset));
+    const alongA = Math.sqrt(Math.max(0, radiusA * radiusA - sideA * sideA));
+    const alongB = Math.sqrt(Math.max(0, radiusB * radiusB - sideB * sideB));
+    const x1 = a.x + ux * alongA + px * sideA;
+    const y1 = a.y + uy * alongA + py * sideA;
+    const x2 = b.x - ux * alongB + px * sideB;
+    const y2 = b.y - uy * alongB + py * sideB;
+    return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" />`;
+  }).join("");
+}
+
 export function parseStructure(text) {
   const source = String(text || "").trim().replace(/[−–—]/g, "-").replace(/\s+/g, "");
   if (!source) return null;
@@ -106,6 +125,13 @@ export function parseStructure(text) {
       if (current < 0 || bondPending) return null;
       pendingBond = char === "-" ? 1 : char === "=" ? 2 : 3;
       bondPending = true;
+      index++;
+      continue;
+    }
+    if (char === ".") {
+      if (current < 0 || bondPending || branch.length) return null;
+      current = -1;
+      pendingBond = 1;
       index++;
       continue;
     }
@@ -159,27 +185,25 @@ function layoutGraph(graph) {
   const adjacency = atoms.map(() => []);
   bonds.forEach(b => { adjacency[b.a].push(b.b); adjacency[b.b].push(b.a); });
   if (atoms.length > 2 && bonds.length === atoms.length && adjacency.every(list => list.length === 2) && atoms.every(atom => !Number.isFinite(atom.x) || !Number.isFinite(atom.y))) {
-    const radius = Math.max(45, Math.min(92, atoms.length * 13));
+    const radius = Math.max(62, Math.min(112, atoms.length * 14));
     atoms.forEach((atom, index) => {
       const angle = -Math.PI / 2 + index * Math.PI * 2 / atoms.length;
-      atom.x = 360 + Math.cos(angle) * radius;
-      atom.y = 122 + Math.sin(angle) * radius;
+      atom.x = 390 + Math.cos(angle) * radius;
+      atom.y = 132 + Math.sin(angle) * radius;
     });
     return { atoms, bonds };
   }
   const assigned = new Set();
-  const roots = [];
   for (let i = 0; i < atoms.length; i++) {
     if (assigned.has(i)) continue;
-    roots.push(i);
     const queue = [{ id: i, parent: -1, depth: 0, lane: 0 }];
     assigned.add(i);
     while (queue.length) {
       const current = queue.shift();
       const node = atoms[current.id];
       if (!Number.isFinite(node.x) || !Number.isFinite(node.y)) {
-        node.x = 54 + current.depth * 74;
-        node.y = 96 + current.lane * 55;
+        node.x = 54 + current.depth * 82;
+        node.y = 128 + (current.depth % 2 === 0 ? -27 : 27) + current.lane * 50;
       }
       const children = adjacency[current.id].filter(id => id !== current.parent && !assigned.has(id));
       children.forEach((child, k) => {
@@ -191,7 +215,6 @@ function layoutGraph(graph) {
   }
   return { atoms, bonds };
 }
-
 function implicitHydrogens(atom, graph) {
   const valence = { C: 4, O: 2, N: 3, S: 2, F: 1, Cl: 1, Br: 1 }[atom.element];
   if (!valence) return 0;
@@ -203,33 +226,30 @@ export function renderMoleculeSvg(input, mode = "structural", className = "molec
   const graph = typeof input === "string" ? parseStructure(input) : input;
   if (!graph || !graph.atoms.length) return "<div class=\"chem-empty\">ساختار قابل نمایش نیست</div>";
   const positioned = layoutGraph(graph);
-  const xs = positioned.atoms.map(a => a.x);
-  const ys = positioned.atoms.map(a => a.y);
-  const minX = Math.min(...xs) - 34, maxX = Math.max(...xs) + 34;
-  const minY = Math.min(...ys) - 36, maxY = Math.max(...ys) + 36;
-  const width = Math.max(150, maxX - minX), height = Math.max(110, maxY - minY);
-  const bondMarkup = positioned.bonds.map(b => {
-    const a = positioned.atoms[b.a], c = positioned.atoms[b.b];
-    const dx = c.x - a.x, dy = c.y - a.y;
-    const length = Math.max(1, Math.hypot(dx, dy));
-    const ox = -dy / length * 4, oy = dx / length * 4;
-    const lines = [];
-    for (let k = 0; k < b.order; k++) {
-      const offset = (k - (b.order - 1) / 2) * 7;
-      lines.push(`<line x1="${a.x + ox * offset / 4}" y1="${a.y + oy * offset / 4}" x2="${c.x + ox * offset / 4}" y2="${c.y + oy * offset / 4}" />`);
-    }
-    return lines.join("");
-  }).join("");
-  const atomMarkup = positioned.atoms.map(atom => {
+  const display = positioned.atoms.map(atom => {
     const showCarbon = mode !== "skeletal" || atom.element !== "C" || graph.atoms.length === 1;
     const hydrogenCount = mode === "explicit" ? implicitHydrogens(atom, graph) : 0;
     const label = atom.element + (hydrogenCount ? `H${toSub(hydrogenCount)}` : "");
-    if (!showCarbon) return "";
-    return `<text class="molecule-atom atom-${atom.element.toLowerCase()}" x="${atom.x}" y="${atom.y + 6}" text-anchor="middle">${escapeHtml(label)}</text>`;
+    const radius = !showCarbon ? 4 : Math.max(20, Math.min(30, 12 + label.length * 6));
+    return { atom, showCarbon, label, radius };
+  });
+  const radiusById = new Map(display.map(item => [item.atom.id, item.radius]));
+  const xs = positioned.atoms.map(a => a.x);
+  const ys = positioned.atoms.map(a => a.y);
+  const maxRadius = Math.max(...display.map(item => item.radius));
+  const minX = Math.min(...xs) - maxRadius - 10, maxX = Math.max(...xs) + maxRadius + 10;
+  const minY = Math.min(...ys) - maxRadius - 10, maxY = Math.max(...ys) + maxRadius + 10;
+  const width = Math.max(150, maxX - minX), height = Math.max(110, maxY - minY);
+  const bondMarkup = positioned.bonds.map(bond => {
+    const a = positioned.atoms[bond.a], b = positioned.atoms[bond.b];
+    return clippedBondLines(a, b, bond.order, radiusById.get(a.id), radiusById.get(b.id));
+  }).join("");
+  const atomMarkup = display.map(({ atom, showCarbon, label, radius }) => {
+    if (!showCarbon) return `<circle class="molecule-vertex" cx="${atom.x}" cy="${atom.y}" r="4.2" />`;
+    return `<g class="molecule-atom atom-${atom.element.toLowerCase()}"><circle class="atom-node" cx="${atom.x}" cy="${atom.y}" r="${radius}" /><text x="${atom.x}" y="${atom.y + 5}" text-anchor="middle">${escapeHtml(label)}</text></g>`;
   }).join("");
   return `<svg class="${className}" viewBox="${minX} ${minY} ${width} ${height}" role="img" aria-label="ساختار مولکولی"><g class="molecule-bonds">${bondMarkup}</g><g class="molecule-atoms">${atomMarkup}</g></svg>`;
 }
-
 function graphWithoutHydrogen(graph) {
   const kept = graph.atoms.filter(a => a.element !== "H");
   const ids = new Map(kept.map((a, i) => [a.id, i]));
@@ -358,9 +378,11 @@ const groupStructure = group => {
 const ALKANE_ROOTS = ["", "متان", "اتان", "پروپان", "بوتان", "پنتان", "هگزان", "هپتان", "اوکتان", "نونان", "دکان"];
 const ALKYL_SUBSTITUENTS = {
   1: { key: "methyl", name: "متیل" },
-  2: { key: "ethyl", name: "اتیل" }
+  2: { key: "ethyl", name: "اتیل" },
+  3: { key: "propyl", name: "پروپیل" },
+  4: { key: "butyl", name: "بوتیل" }
 };
-const ALKYL_PREFIXES = ["", "", "دی", "تری", "تترا", "پنتا", "هگزا"];
+const ALKYL_PREFIXES = ["", "", "دی", "تری", "تترا", "پنتا", "هگزا", "هپتا"];
 const persianNumber = value => String(value).replace(/\d/g, digit => "۰۱۲۳۴۵۶۷۸۹"[Number(digit)]);
 
 function compareNumberLists(first, second) {
@@ -452,7 +474,9 @@ function alkylNameFromGraph(graph) {
       const substituent = ALKYL_SUBSTITUENTS[size].name;
       return persianNumber(locants.join("،")) + "-" + (prefix ? prefix + "‌" : "") + substituent;
     });
-  return parts.length ? parts.join("-") + "-" + ALKANE_ROOTS[longest] : ALKANE_ROOTS[longest];
+  if (!parts.length) return ALKANE_ROOTS[longest];
+  const last = parts.pop();
+  return [...parts, last + "‌" + ALKANE_ROOTS[longest]].join("-");
 }
 
 function makeAlkylNamingMolecule(parentLength, branches) {
@@ -470,6 +494,12 @@ function generatedAlkylNamingMolecules() {
     makeAlkylNamingMolecule(10, [
       { locant: 4, size: 2 }, { locant: 4, size: 2 }, { locant: 5, size: 2 },
       { locant: 7, size: 1 }, { locant: 7, size: 1 }
+    ]),
+    makeAlkylNamingMolecule(10, [
+      { locant: 5, size: 3 }, { locant: 7, size: 1 }
+    ]),
+    makeAlkylNamingMolecule(10, [
+      { locant: 5, size: 4 }, { locant: 7, size: 1 }
     ])
   ];
   for (let i = 0; i < 12; i++) {
@@ -478,13 +508,13 @@ function generatedAlkylNamingMolecules() {
     for (let locant = 4; locant <= parentLength - 3; locant++) positions.push(locant, locant);
     const branchCount = Math.min(3 + rnd(3), positions.length, 18 - parentLength);
     const branches = [];
-    let extraCarbons = 0;
-    for (let count = 0; count < branchCount; count++) {
+    let remainingCarbons = 18 - parentLength;
+    for (let count = 0; count < branchCount && remainingCarbons > 0; count++) {
       const slot = rnd(positions.length);
       const locant = positions.splice(slot, 1)[0];
-      let size = 1 + rnd(2);
-      if (extraCarbons + size > 18 - parentLength) size = 1;
-      extraCarbons += size;
+      let size = 1 + rnd(3);
+      if (size > remainingCarbons) size = 1;
+      remainingCarbons -= size;
       branches.push({ locant, size });
     }
     const molecule = makeAlkylNamingMolecule(parentLength, branches);
@@ -678,8 +708,9 @@ export function makeChemistryQuestion(data) {
 export function structureEditorMarkup() {
   return `<div class="chem-editor">
     <div class="chem-editor-tools">
-      <div class="chem-atom-tools" role="group" aria-label="افزودن اتم">
-        <button type="button" data-atom="C" class="is-active">C</button>
+      <div class="chem-atom-tools" role="group" aria-label="ابزار رسم و انتخاب">
+        <button type="button" data-editor-mode="select" class="chem-select-tool" aria-pressed="false" title="انتخاب اتم‌های موجود">✋ انتخاب</button>
+        <button type="button" data-atom="C" class="is-active" aria-pressed="true">C</button>
         <button type="button" data-atom="O">O</button>
         <button type="button" data-atom="N">N</button>
         <button type="button" data-atom="H">H</button>
@@ -700,7 +731,7 @@ export function structureEditorMarkup() {
     </div>
     <label class="chem-editor-text-label" for="chem-structure-text">یا ساختار را متنی بنویس</label>
     <textarea id="chem-structure-text" class="chem-structure-text" rows="2" dir="ltr" spellcheck="false" autocapitalize="off" placeholder="مثلاً C-C(=O)-O یا C1=CC=CC=C1"></textarea>
-    <div class="chem-editor-help">راهنمای نوشتن: از C برای کربن، O برای اکسیژن، N برای نیتروژن، H برای هیدروژن و R برای ادامهٔ زنجیر استفاده کن. پیوند یگانه با -، دوگانه با = و سه‌گانه با # نوشته می‌شود. برای شاخه از پرانتز و برای حلقه از شماره استفاده کن؛ مثلاً C-C-C، C-C(=O)-O، C-C-O یا C1=CC=CC=C1. بین رسم‌کردن و نوشتن متنی فقط یکی کافی است.</div>
+    <div class="chem-editor-help">راهنمای رسم: ابتدا نوع اتم را انتخاب کن و اتم‌ها را در صفحه بگذار. سپس ابزار ✋ انتخاب را فعال کن، روی دو اتم موجود بزن و نوع پیوند را انتخاب کن. برای نوشتن متنی از C، O، N، H و R استفاده کن؛ پیوند یگانه با -، دوگانه با = و سه‌گانه با # است. برای شاخه از پرانتز و برای حلقه از شماره استفاده کن؛ مثلاً C-C-C، C-C(=O)-O یا C1=CC=CC=C1. بین رسم و نوشتن متن فقط یکی کافی است.</div>
     <small class="chem-editor-status" aria-live="polite">ابتدا اتم‌ها را اضافه کن یا ساختار را در کادر بنویس.</small>
   </div>`;
 }
@@ -714,10 +745,12 @@ export function mountStructureEditor(container) {
   let graph = { atoms: [], bonds: [] };
   let selected = [];
   let activeAtom = "C";
+  let activeMode = "add";
   let activeBond = 1;
   let source = "";
   let parseError = "";
   let dragging = null;
+  let suppressCanvasClick = false;
   const atomById = id => graph.atoms.find(a => a.id === id);
   const tell = message => { status.textContent = message; };
   const serialize = () => {
@@ -737,7 +770,13 @@ export function mountStructureEditor(container) {
         else if (!treeEdges.has(key) && !ringEdges.some(r => r.key === key)) ringEdges.push({ key, a: id, b: edge.id, order: edge.order });
       }
     };
-    walk(0, -1);
+    const roots = [];
+    for (let id = 0; id < nodes.length; id++) {
+      if (!visited.has(id)) {
+        roots.push(id);
+        walk(id, -1);
+      }
+    }
     let ringNumber = 1;
     const rings = nodes.map(() => []);
     ringEdges.forEach(r => {
@@ -757,7 +796,7 @@ export function mountStructureEditor(container) {
       });
       return result;
     };
-    return build(0, -1);
+    return roots.map(root => build(root, -1)).join(".");
   };
   const render = () => {
     if (!graph.atoms.length) {
@@ -765,17 +804,13 @@ export function mountStructureEditor(container) {
       return;
     }
     const positioned = layoutGraph(graph);
+    const atomRadius = 17;
     const bonds = positioned.bonds.map(b => {
       const a = positioned.atoms[b.a], c = positioned.atoms[b.b];
       if (!a || !c) return "";
-      const dx = c.x - a.x, dy = c.y - a.y, length = Math.max(1, Math.hypot(dx, dy));
-      const ox = -dy / length * 4, oy = dx / length * 4;
-      return Array.from({ length: b.order }, (_, k) => {
-        const offset = (k - (b.order - 1) / 2) * 7;
-        return `<line x1="${a.x + ox * offset / 4}" y1="${a.y + oy * offset / 4}" x2="${c.x + ox * offset / 4}" y2="${c.y + oy * offset / 4}" />`;
-      }).join("");
+      return clippedBondLines(a, c, b.order, atomRadius, atomRadius);
     }).join("");
-    const atoms = positioned.atoms.map(atom => `<g class="chem-editor-atom ${selected.includes(atom.id) ? "is-selected" : ""}" data-atom-id="${atom.id}" tabindex="0" role="button" aria-label="اتم ${atom.element}"><circle cx="${atom.x}" cy="${atom.y}" r="17"></circle><text x="${atom.x}" y="${atom.y + 5}" text-anchor="middle">${escapeHtml(atom.element)}</text></g>`).join("");
+    const atoms = positioned.atoms.map(atom => `<g class="chem-editor-atom ${selected.includes(atom.id) ? "is-selected" : ""}" data-atom-id="${atom.id}" tabindex="0" role="button" aria-label="اتم ${atom.element}"><circle cx="${atom.x}" cy="${atom.y}" r="${atomRadius}"></circle><text x="${atom.x}" y="${atom.y + 5}" text-anchor="middle">${escapeHtml(atom.element)}</text></g>`).join("");
     canvas.innerHTML = `<g class="chem-editor-bonds">${bonds}</g><g class="chem-editor-atoms">${atoms}</g>`;
   };
   const syncText = () => {
@@ -784,10 +819,27 @@ export function mountStructureEditor(container) {
     parseError = "";
   };
   const updateSelectedTools = () => {
-    container.querySelectorAll("[data-atom]").forEach(button => button.classList.toggle("is-active", button.dataset.atom === activeAtom));
+    container.querySelectorAll("[data-atom]").forEach(button => {
+      const active = button.dataset.atom === activeAtom && activeMode === "add";
+      button.classList.toggle("is-active", active);
+      button.setAttribute("aria-pressed", String(active));
+    });
+    const selectButton = container.querySelector("[data-editor-mode=select]");
+    selectButton.classList.toggle("is-active", activeMode === "select");
+    selectButton.setAttribute("aria-pressed", String(activeMode === "select"));
     container.querySelectorAll("[data-bond]").forEach(button => button.classList.toggle("is-active", Number(button.dataset.bond) === activeBond));
   };
-  container.querySelectorAll("[data-atom]").forEach(button => button.addEventListener("click", () => { activeAtom = button.dataset.atom; updateSelectedTools(); tell(`اتم ${activeAtom} انتخاب شد؛ روی صفحه بزن.`); }));
+  container.querySelector("[data-editor-mode=select]").addEventListener("click", () => {
+    activeMode = "select";
+    updateSelectedTools();
+    tell("حالت انتخاب فعال شد؛ دو اتم موجود را انتخاب کن، سپس نوع پیوند را بزن.");
+  });
+  container.querySelectorAll("[data-atom]").forEach(button => button.addEventListener("click", () => {
+    activeAtom = button.dataset.atom;
+    activeMode = "add";
+    updateSelectedTools();
+    tell(`حالت افزودن فعال شد؛ برای افزودن اتم ${activeAtom} روی فضای خالی بزن.`);
+  }));
   container.querySelectorAll("[data-bond]").forEach(button => button.addEventListener("click", () => {
     activeBond = Number(button.dataset.bond);
     updateSelectedTools();
@@ -813,31 +865,31 @@ export function mountStructureEditor(container) {
     graph = { atoms: [], bonds: [] }; selected = []; source = ""; text.value = ""; parseError = ""; render(); tell("صفحه پاک شد.");
   });
   canvas.addEventListener("click", event => {
+    if (suppressCanvasClick) { suppressCanvasClick = false; return; }
     if (event.target.closest("[data-atom-id]")) return;
+    if (activeMode !== "add") {
+      if (selected.length) { selected = []; render(); }
+      tell("برای انتخاب پیوند، روی دو اتم موجود بزن.");
+      return;
+    }
     if (graph.atoms.length >= 18) return tell("برای جلوگیری از شلوغی، حداکثر ۱۸ اتم قابل افزودن است.");
     const point = canvas.createSVGPoint();
     point.x = event.clientX; point.y = event.clientY;
     const local = point.matrixTransform(canvas.getScreenCTM().inverse());
     const id = graph.atoms.length;
-    const previous = selected.length === 1 ? selected[0] : null;
     graph.atoms.push({ id, element: activeAtom, aromatic: false, x: Math.max(24, Math.min(696, local.x)), y: Math.max(24, Math.min(221, local.y)) });
-    selected = previous === null ? [id] : [previous, id];
+    selected = [];
     render(); syncText();
-    if (selected.length === 2) tell("دو اتم انتخاب شده‌اند؛ نوع پیوند را انتخاب کن.");
-    else tell(`اتم ${activeAtom} اضافه شد.`);
+    tell(`اتم ${activeAtom} اضافه شد؛ برای اتصال اتم‌ها ابزار انتخاب را بزن.`);
   });
   const selectAtom = id => {
     if (selected.includes(id)) selected = selected.filter(x => x !== id);
     else if (selected.length < 2) selected.push(id);
     else selected = [id];
     render();
-    if (selected.length === 2) tell("دو اتم انتخاب شده‌اند؛ نوع پیوند را انتخاب کن.");
+    if (selected.length === 2) tell("دو اتم موجود انتخاب شدند؛ نوع پیوند را برای اتصال یا تغییر پیوند بزن.");
     else tell(selected.length ? "اتم اول انتخاب شد؛ اتم دوم را انتخاب کن." : "انتخاب اتم لغو شد.");
   };
-  canvas.addEventListener("click", event => {
-    const node = event.target.closest("[data-atom-id]");
-    if (node) selectAtom(Number(node.dataset.atomId));
-  });
   canvas.addEventListener("keydown", event => {
     if (event.key !== "Enter" && event.key !== " ") return;
     const node = event.target.closest("[data-atom-id]");
@@ -848,6 +900,12 @@ export function mountStructureEditor(container) {
   canvas.addEventListener("pointerdown", event => {
     const node = event.target.closest("[data-atom-id]");
     if (!node || event.button !== 0) return;
+    if (activeMode === "select") {
+      event.preventDefault();
+      suppressCanvasClick = true;
+      selectAtom(Number(node.dataset.atomId));
+      return;
+    }
     dragging = Number(node.dataset.atomId);
     canvas.setPointerCapture(event.pointerId);
   });

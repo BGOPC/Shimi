@@ -400,7 +400,7 @@ const buildBagFor = (mode, c) => {
       types.forEach(t => a.push({ k: "element", e, t }));
     });
   }
-  if (mode === "hydrocarbon" || mode === "functional" || mode === "chemMixed") return buildChemistryBag(mode, c);
+  if (mode === "hydrocarbon" || mode === "hydroExam" || mode === "functional" || mode === "chemMixed") return buildChemistryBag(mode, c);
   return a;
 };
 
@@ -601,7 +601,15 @@ $("#timerEnabled").addEventListener("change", () => {
 
 const readHydroConfig = () => {
   const extra = readChips("hydroExtra");
-  return { types: readChips("hydroTypes"), models: readChips("hydroModels"), chains: readChips("hydroChains"), cyclic: !!extra.cyclic };
+  const alkylOnly = !!extra.alkylOnly;
+  const selectedTypes = readChips("hydroTypes");
+  return {
+    types: alkylOnly ? { structureToName: true } : selectedTypes,
+    models: readChips("hydroModels"),
+    chains: readChips("hydroChains"),
+    cyclic: !!extra.cyclic && !alkylOnly,
+    alkylOnly
+  };
 };
 const readFunctionalConfig = () => ({ types: readChips("functionalTypes") });
 const CHEM_SETTINGS_KEY = "organicChemistrySettings";
@@ -661,12 +669,23 @@ $("#startMixed").addEventListener("click", () => {
 
 $("#startHydrocarbon").addEventListener("click", () => {
   const cfg = readHydroConfig();
-  if (!anyOn(cfg.types) || (!anyOn(cfg.chains) && !cfg.cyclic) || (cfg.types.structureToName && !anyOn(cfg.models))) {
-    flash(!anyOn(cfg.types) ? $("#hydroTypes") : !anyOn(cfg.chains) && !cfg.cyclic ? $("#hydroChains") : $("#hydroModels"));
+  if (!anyOn(cfg.types) || (!cfg.alkylOnly && !anyOn(cfg.chains) && !cfg.cyclic) || (!cfg.alkylOnly && cfg.types.structureToName && !anyOn(cfg.models))) {
+    flash(!anyOn(cfg.types) ? $("#hydroTypes") : !cfg.alkylOnly && !anyOn(cfg.chains) && !cfg.cyclic ? $("#hydroChains") : $("#hydroModels"));
     return;
   }
   saveChemSettings();
   start("hydrocarbon", cfg);
+});
+
+$("#startHydrocarbonExam").addEventListener("click", () => {
+  const cfg = readHydroConfig();
+  if (!cfg.alkylOnly && !anyOn(cfg.chains) && !cfg.cyclic) {
+    flash($("#hydroChains"));
+    return;
+  }
+  cfg.types = cfg.alkylOnly ? { structureToName: true } : { nameToStructure: true, structureToName: true };
+  saveChemSettings();
+  start("hydroExam", cfg);
 });
 
 $("#startFunctional").addEventListener("click", () => {

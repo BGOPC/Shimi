@@ -6,7 +6,8 @@ import {
   renderMoleculeSvg,
   detectFunctionalGroups,
   buildChemistryBag,
-  makeChemistryQuestion
+  makeChemistryQuestion,
+  structureEditorMarkup
 } from "../src/chemistry.js";
 
 test("SMILES-like parser handles chains, branches, multiple bonds and rings", () => {
@@ -23,6 +24,17 @@ test("SMILES-like parser handles chains, branches, multiple bonds and rings", ()
   assert.equal(parseStructure("C="), null);
   assert.equal(parseStructure("C==O"), null);
   assert.equal(parseStructure("[CH3]"), null);
+});
+
+test("structure notation supports temporary disconnected editor atoms", () => {
+  const graph = parseStructure("C.O.N");
+  assert.equal(graph.atoms.length, 3);
+  assert.equal(graph.bonds.length, 0);
+  assert.equal(parseStructure("C..O"), null);
+  assert.equal(parseStructure("C.=O"), null);
+  const markup = structureEditorMarkup();
+  assert.match(markup, /data-editor-mode="select"/);
+  assert.match(markup, /✋ انتخاب/);
 });
 
 test("structure matching is independent of atom numbering and drawing direction", () => {
@@ -97,6 +109,57 @@ test("all generated hydrocarbon questions accept their canonical answer", () => 
   assert.ok(bag.some(item => item.kind === "hydroName" && item.style === "skeletal"));
   assert.ok(bag.some(item => item.kind === "hydroName" && item.style === "structural"));
   assert.ok(bag.some(item => item.kind === "hydroName" && item.style === "explicit"));
+});
+
+test("atom-based SVG styles clip bonds at circular nodes and skeletal chains zig-zag", () => {
+  const structural = renderMoleculeSvg("CCO", "structural");
+  const explicit = renderMoleculeSvg("CCO", "explicit");
+  const skeletal = renderMoleculeSvg("CCCO", "skeletal");
+  assert.match(structural, /class="atom-node"/);
+  assert.match(explicit, /class="atom-node"/);
+  assert.match(structural, /<circle class="atom-node"/);
+  assert.match(skeletal, /class="molecule-vertex"/);
+  const vertices = [...skeletal.matchAll(/class="molecule-vertex" cx="[^"]+" cy="([^"]+)"/g)].map(match => Number(match[1]));
+  assert.ok(new Set(vertices).size > 1);
+  const line = structural.match(/<line x1="([^"]+)" y1="([^"]+)" x2="([^"]+)" y2="([^"]+)"/);
+  const circle = structural.match(/<circle class="atom-node" cx="([^"]+)" cy="([^"]+)" r="([^"]+)"/);
+  assert.ok(line && circle);
+  assert.notEqual(Number(line[1]), Number(circle[1]));
+});
+
+test("alkyl-only mode generates branched alkane naming questions with parent-chain locants", () => {
+  const bag = buildChemistryBag("hydrocarbon", {
+    alkylOnly: true,
+    types: { structureToName: true, nameToStructure: true },
+    models: { skeletal: true, structural: true, explicit: true },
+    chains: { single: true, multiple: true },
+    cyclic: true
+  });
+  assert.ok(bag.length >= 10);
+  assert.ok(bag.every(item => item.kind === "hydroName" && item.molecule.type === "alkyl"));
+  assert.ok(bag.some(item => item.molecule.name === "۴،۴،۵-تری‌اتیل-۷،۷-دی‌متیل‌دکان"));
+  assert.ok(bag.some(item => item.molecule.name.includes("پروپیل")));
+  assert.ok(bag.some(item => item.molecule.name.includes("بوتیل")));
+  for (const item of bag) {
+    const question = makeChemistryQuestion(item);
+    assert.equal(question.check({ name: item.molecule.name }).name.ok, true);
+    assert.ok(item.graph.atoms.every(atom => atom.element === "C"));
+    assert.ok(item.graph.bonds.every(bond => bond.order === 1));
+    assert.ok(item.molecule.carbonCount <= 18);
+  }
+  assert.equal(bag.some(item => item.kind === "hydroDraw" || item.molecule.type === "aromatic"), false);
+});
+
+test("dedicated hydrocarbon comprehensive mode combines drawing and naming questions", () => {
+  const bag = buildChemistryBag("hydroExam", {
+    types: { nameToStructure: true, structureToName: true },
+    models: { skeletal: true, structural: true },
+    chains: { single: true, multiple: true },
+    cyclic: true
+  });
+  assert.ok(bag.some(item => item.kind === "hydroDraw"));
+  assert.ok(bag.some(item => item.kind === "hydroName"));
+  assert.ok(bag.some(item => item.kind === "aromatic"));
 });
 
 test("all generated functional questions have accepted canonical answers", () => {
