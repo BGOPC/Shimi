@@ -94,44 +94,63 @@
 .chem-editor-tools button.chem-select-tool.is-active { box-shadow: 0 0 0 2px rgba(198,160,246,.25); }
 .chem-edit-tools { margin-inline-start: auto; }
 .chem-edit-tools button { font-size: .78rem; font-weight: 600; }
-.chem-fragment-tools {
+.chem-editor-drawing-area {
   display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: 10px;
-  margin: 12px 0;
+  width: 100%;
+  min-width: 0;
+  grid-template-columns: 196px minmax(0, 1fr);
+  align-items: stretch;
+  overflow: hidden;
+  border: 1px dashed var(--bd);
+  border-radius: 8px;
+  background: rgba(0,0,0,.10);
+}
+.chem-fragment-tools {
+  display: flex;
+  min-width: 0;
+  max-height: clamp(420px, 42vw, 650px);
+  flex-direction: column;
+  gap: 12px;
+  padding: 10px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border-inline-start: 1px solid var(--bd);
+  background: rgba(0,0,0,.08);
 }
 .chem-fragment-group {
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px;
+  min-width: 0;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
 }
 .chem-fragment-heading {
-  flex: 0 0 104px;
+  display: block;
   color: var(--mut);
   font-size: .82rem;
   font-weight: 800;
 }
 .chem-fragment-buttons {
-  display: flex;
-  flex: 1 1 0;
-  flex-wrap: wrap;
-  gap: 7px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 6px;
 }
 .chem-fragment-buttons button {
   display: inline-flex;
-  min-width: 76px;
-  min-height: 42px;
+  width: 100%;
+  min-width: 0;
+  min-height: 39px;
   align-items: center;
-  justify-content: center;
-  flex-direction: column;
-  gap: 1px;
-  padding: 5px 10px;
+  justify-content: space-between;
+  flex-direction: row;
+  gap: 6px;
+  padding: 5px 8px;
   border: 1px solid var(--bd);
-  border-radius: 8px;
+  border-radius: 7px;
   background: var(--card);
   color: var(--tx);
   font: inherit;
+  font-size: .82rem;
   font-weight: 750;
   cursor: pointer;
   transition: border-color .12s ease, background .12s ease, transform .12s ease;
@@ -143,23 +162,24 @@
 .chem-fragment-buttons button:active { transform: translateY(1px); }
 .chem-fragment-buttons button small {
   color: var(--mut);
-  font-size: .68rem;
+  font-size: .66rem;
   font-weight: 650;
   direction: ltr;
+  white-space: nowrap;
 }
 .chem-editor-canvas-wrap {
   width: 100%;
+  min-width: 0;
+  min-height: 0;
   overflow: auto;
   overscroll-behavior: contain;
-  border: 1px dashed var(--bd);
-  border-radius: 7px;
   background: rgba(0,0,0,.10);
 }
 .chem-editor-canvas {
   display: block;
   width: 100%;
-  min-width: 720px;
-  height: clamp(360px, 42vw, 520px);
+  min-width: 760px;
+  height: clamp(420px, 42vw, 650px);
   touch-action: pan-x;
   cursor: crosshair;
 }
@@ -219,13 +239,29 @@
   .chem-mixed-card { grid-column: auto; }
   .chem-limit-control { width: 100%; }
 }
+@media (max-width: 760px) {
+  .chem-editor-drawing-area { grid-template-columns: 116px minmax(0, 1fr); }
+  .chem-fragment-tools { max-height: 460px; padding: 7px; gap: 9px; }
+  .chem-fragment-heading { font-size: .72rem; }
+  .chem-fragment-buttons { gap: 5px; }
+  .chem-fragment-buttons button {
+    min-height: 36px;
+    justify-content: center;
+    flex-direction: column;
+    gap: 0;
+    padding: 4px 3px;
+    font-size: .72rem;
+  }
+  .chem-fragment-buttons button small { font-size: .58rem; }
+  .chem-editor-canvas { min-width: 520px; height: 460px; }
+}
 @media (max-width: 520px) {
   .chemistry-card { padding: 15px; }
   .chem-editor { padding: 9px; }
   .chem-editor-tools { gap: 6px; }
-  .chem-fragment-heading { flex-basis: 100%; }
-  .chem-fragment-buttons { flex: 1 1 100%; }
-  .chem-fragment-buttons button { min-width: 68px; flex: 1 1 68px; }
+  .chem-editor-drawing-area { grid-template-columns: 104px minmax(0, 1fr); }
+  .chem-fragment-tools { max-height: 420px; padding: 6px; gap: 8px; }
+  .chem-editor-canvas { min-width: 480px; height: 420px; }
   .chem-edit-tools { width: 100%; margin-inline-start: 0; }
   .chem-edit-tools button { flex: 1; }
   .chem-multi-options,
