@@ -1,5 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import {
   parseStructure,
   sameStructure,
@@ -9,6 +10,23 @@ import {
   makeChemistryQuestion,
   structureEditorMarkup
 } from "../src/chemistry.js";
+
+
+test("home screen closes before the quiz screen and quiz controls are inside #quiz", () => {
+  const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
+  const chemistryCard = html.indexOf('id="mobile-chem-mixed-content"');
+  const quizStart = html.indexOf('<section id="quiz" class="screen">');
+  const summaryStart = html.indexOf('<section id="summary" class="screen">');
+  assert.ok(chemistryCard >= 0);
+  assert.ok(quizStart > chemistryCard);
+  assert.ok(summaryStart > quizStart);
+  assert.equal((html.match(/<section id="quiz" class="screen">/g) || []).length, 1);
+  const quizMarkup = html.slice(quizStart, summaryStart);
+  assert.ok(quizMarkup.includes('id="qPrompt"'));
+  assert.ok(quizMarkup.includes('id="fields"'));
+  assert.ok(quizMarkup.includes('id="actBtn"'));
+  assert.equal(html.includes('\ns="screen">'), false);
+});
 
 test("SMILES-like parser handles chains, branches, multiple bonds and rings", () => {
   const chain = parseStructure("C-C=C");
