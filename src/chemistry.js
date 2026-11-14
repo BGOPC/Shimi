@@ -396,7 +396,7 @@ function carbonChainLength(graph) {
   const second = walk(first.farthest);
   return second.distance.get(second.farthest) + 1;
 }
-(graph) {
+function graphWithoutHydrogen(graph) {
   const kept = graph.atoms.filter(a => a.element !== "H");
   const ids = new Map(kept.map((a, i) => [a.id, i]));
   return {
