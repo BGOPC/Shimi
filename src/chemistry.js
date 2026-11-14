@@ -1007,44 +1007,63 @@ export function structureEditorMarkup() {
         <button type="button" data-editor-action="clear">پاک‌کردن</button>
       </div>
     </div>
-    <div class="chem-fragment-tools" aria-label="میان‌بر افزودن زنجیره‌های کربنی">
-      <div class="chem-fragment-group">
-        <span class="chem-fragment-heading">گروه‌های آلکیل</span>
-        <div class="chem-fragment-buttons">
-          <button type="button" data-editor-fragment="1" data-fragment-label="متیل"><span>متیل</span><small>CH₃–</small></button>
-          <button type="button" data-editor-fragment="2" data-fragment-label="اتیل"><span>اتیل</span><small>C₂H₅–</small></button>
-          <button type="button" data-editor-fragment="3" data-fragment-label="پروپیل"><span>پروپیل</span><small>C₃H₇–</small></button>
+    <div class="chem-editor-drawing-area">
+      <aside class="chem-fragment-tools" aria-label="میان‌بر افزودن زنجیره‌های کربنی">
+        <div class="chem-fragment-group">
+          <span class="chem-fragment-heading">گروه‌های آلکیل</span>
+          <div class="chem-fragment-buttons">
+            <button type="button" data-editor-fragment="1" data-fragment-label="متیل"><span>متیل</span><small>CH₃–</small></button>
+            <button type="button" data-editor-fragment="2" data-fragment-label="اتیل"><span>اتیل</span><small>C₂H₅–</small></button>
+            <button type="button" data-editor-fragment="3" data-fragment-label="پروپیل"><span>پروپیل</span><small>C₃H₇–</small></button>
+          </div>
         </div>
-      </div>
-      <div class="chem-fragment-group">
-        <span class="chem-fragment-heading">آلکان‌ها</span>
-        <div class="chem-fragment-buttons chem-alkane-buttons">
-          <button type="button" data-editor-fragment="1" data-fragment-label="متان"><span>متان</span><small>CH₄</small></button>
-          <button type="button" data-editor-fragment="2" data-fragment-label="اتان"><span>اتان</span><small>C₂H₆</small></button>
-          <button type="button" data-editor-fragment="3" data-fragment-label="پروپان"><span>پروپان</span><small>C₃H₈</small></button>
-          <button type="button" data-editor-fragment="4" data-fragment-label="بوتان"><span>بوتان</span><small>C₄H₁₀</small></button>
-          <button type="button" data-editor-fragment="5" data-fragment-label="پنتان"><span>پنتان</span><small>C₅H₁₂</small></button>
-          <button type="button" data-editor-fragment="6" data-fragment-label="هگزان"><span>هگزان</span><small>C₆H₁₄</small></button>
-          <button type="button" data-editor-fragment="7" data-fragment-label="هپتان"><span>هپتان</span><small>C₇H₁₆</small></button>
-          <button type="button" data-editor-fragment="8" data-fragment-label="اوکتان"><span>اوکتان</span><small>C₈H₁₈</small></button>
-          <button type="button" data-editor-fragment="9" data-fragment-label="نونان"><span>نونان</span><small>C₉H₂₀</small></button>
-          <button type="button" data-editor-fragment="10" data-fragment-label="دکان"><span>دکان</span><small>C₁₀H₂₂</small></button>
+        <div class="chem-fragment-group">
+          <span class="chem-fragment-heading">آلکان‌ها</span>
+          <div class="chem-fragment-buttons chem-alkane-buttons">
+            <button type="button" data-editor-fragment="1" data-fragment-bond="1" data-fragment-label="متان"><span>متان</span><small>CH₄</small></button>
+            <button type="button" data-editor-fragment="2" data-fragment-bond="1" data-fragment-label="اتان"><span>اتان</span><small>C₂H₆</small></button>
+            <button type="button" data-editor-fragment="3" data-fragment-bond="1" data-fragment-label="پروپان"><span>پروپان</span><small>C₃H₈</small></button>
+            <button type="button" data-editor-fragment="4" data-fragment-bond="1" data-fragment-label="بوتان"><span>بوتان</span><small>C₄H₁₀</small></button>
+            <button type="button" data-editor-fragment="5" data-fragment-bond="1" data-fragment-label="پنتان"><span>پنتان</span><small>C₅H₁₂</small></button>
+            <button type="button" data-editor-fragment="6" data-fragment-bond="1" data-fragment-label="هگزان"><span>هگزان</span><small>C₆H₁₄</small></button>
+            <button type="button" data-editor-fragment="7" data-fragment-bond="1" data-fragment-label="هپتان"><span>هپتان</span><small>C₇H₁₆</small></button>
+            <button type="button" data-editor-fragment="8" data-fragment-bond="1" data-fragment-label="اوکتان"><span>اوکتان</span><small>C₈H₁₈</small></button>
+            <button type="button" data-editor-fragment="9" data-fragment-bond="1" data-fragment-label="نونان"><span>نونان</span><small>C₉H₂₀</small></button>
+            <button type="button" data-editor-fragment="10" data-fragment-bond="1" data-fragment-label="دکان"><span>دکان</span><small>C₁₀H₂₂</small></button>
+          </div>
         </div>
+        <div class="chem-fragment-group">
+          <span class="chem-fragment-heading">آلکین‌ها</span>
+          <div class="chem-fragment-buttons chem-alkyne-buttons">
+            <button type="button" data-editor-fragment="2" data-fragment-bond="3" data-fragment-label="اتین"><span>اتین</span><small>C₂H₂</small></button>
+            <button type="button" data-editor-fragment="3" data-fragment-bond="3" data-fragment-label="پروپین"><span>پروپین</span><small>C₃H₄</small></button>
+            <button type="button" data-editor-fragment="4" data-fragment-bond="3" data-fragment-label="بوتین"><span>بوتین</span><small>C₄H₆</small></button>
+            <button type="button" data-editor-fragment="5" data-fragment-bond="3" data-fragment-label="پنتین"><span>پنتین</span><small>C₅H₈</small></button>
+            <button type="button" data-editor-fragment="6" data-fragment-bond="3" data-fragment-label="هگزین"><span>هگزین</span><small>C₆H₁₀</small></button>
+            <button type="button" data-editor-fragment="7" data-fragment-bond="3" data-fragment-label="هپتین"><span>هپتین</span><small>C₇H₁₂</small></button>
+            <button type="button" data-editor-fragment="8" data-fragment-bond="3" data-fragment-label="اوکتین"><span>اوکتین</span><small>C₈H₁₄</small></button>
+            <button type="button" data-editor-fragment="9" data-fragment-bond="3" data-fragment-label="نونین"><span>نونین</span><small>C₉H₁₆</small></button>
+            <button type="button" data-editor-fragment="10" data-fragment-bond="3" data-fragment-label="دکین"><span>دکین</span><small>C₁₀H₁₈</small></button>
+          </div>
+        </div>
+      </aside>
+      <div class="chem-editor-canvas-wrap">
+        <svg class="chem-editor-canvas" viewBox="0 0 1200 600" role="img" aria-label="صفحهٔ بزرگ رسم ساختار مولکولی" preserveAspectRatio="xMidYMid meet"><text x="600" y="300" text-anchor="middle" class="chem-editor-empty">برای افزودن اتم، روی صفحه بزن</text></svg>
       </div>
-    </div>
-    <div class="chem-editor-canvas-wrap">
-      <svg class="chem-editor-canvas" viewBox="0 0 1200 600" role="img" aria-label="صفحهٔ بزرگ رسم ساختار مولکولی" preserveAspectRatio="xMidYMid meet"><text x="600" y="300" text-anchor="middle" class="chem-editor-empty">برای افزودن اتم، روی صفحه بزن</text></svg>
     </div>
     <label class="chem-editor-text-label" for="chem-structure-text">یا ساختار را متنی بنویس</label>
+
     <textarea id="chem-structure-text" class="chem-structure-text" rows="2" dir="ltr" spellcheck="false" autocapitalize="off" placeholder="مثلاً C-C(=O)-O یا C1=CC=CC=C1"></textarea>
     <div class="chem-editor-help">راهنمای رسم: ابتدا نوع اتم را انتخاب کن و اتم‌ها را در صفحه بگذار. سپس ابزار ✋ انتخاب را فعال کن، روی دو اتم موجود بزن و نوع پیوند را انتخاب کن. برای نوشتن متنی از C، O، N، H و R استفاده کن؛ پیوند یگانه با -، دوگانه با = و سه‌گانه با # است. برای شاخه از پرانتز و برای حلقه از شماره استفاده کن؛ مثلاً C-C-C، C-C(=O)-O یا C1=CC=CC=C1. بین رسم و نوشتن متن فقط یکی کافی است.</div>
     <small class="chem-editor-status" aria-live="polite">ابتدا اتم‌ها را اضافه کن یا ساختار را در کادر بنویس.</small>
   </div>`;
 }
 
-export function appendEditorCarbonFragment(graph, carbonCount, width = 1200, height = 600) {
+export function appendEditorCarbonFragment(graph, carbonCount, width = 1200, height = 600, bondOrder = 1) {
   const count = Number(carbonCount);
+  const order = Number(bondOrder);
   if (!Number.isInteger(count) || count < 1 || count > 10 || graph.atoms.length + count > 18) return null;
+  if (!Number.isInteger(order) || order < 1 || order > 3 || (count === 1 && order !== 1)) return null;
   const positioned = layoutEditorGraph(graph);
   const spacing = 58, margin = 40;
   const maxStart = width - margin - (count - 1) * spacing;
@@ -1076,7 +1095,7 @@ export function appendEditorCarbonFragment(graph, carbonCount, width = 1200, hei
   const bonds = Array.from({ length: count - 1 }, (_, index) => ({
     a: nextId + index,
     b: nextId + index + 1,
-    order: 1
+    order: index === 0 ? order : 1
   }));
   return { atoms: [...positioned.atoms, ...atoms], bonds: [...positioned.bonds, ...bonds] };
 }
@@ -1186,7 +1205,8 @@ export function mountStructureEditor(container) {
   }));
   container.querySelectorAll("[data-editor-fragment]").forEach(button => button.addEventListener("click", () => {
     const count = Number(button.dataset.editorFragment);
-    const next = appendEditorCarbonFragment(graph, count, 1200, 600);
+    const bondOrder = Number(button.dataset.fragmentBond || 1);
+    const next = appendEditorCarbonFragment(graph, count, 1200, 600, bondOrder);
     if (!next) {
       tell(graph.atoms.length + count > 18
         ? "حداکثر ۱۸ اتم قابل رسم است؛ برای افزودن قطعهٔ جدید ابتدا چند اتم را حذف کن."
