@@ -129,6 +129,36 @@ test("editor markup includes every carbon shortcut and the enlarged drawing canv
   assert.match(markup, /data-editor-fragment="10"/);
 });
 
+test("editor alkyne shortcuts create a terminal triple bond", () => {
+  const ethyne = appendEditorCarbonFragment({ atoms: [], bonds: [] }, 2, 1200, 600, 3);
+  assert.ok(ethyne);
+  assert.deepEqual(ethyne.bonds, [{ a: 0, b: 1, order: 3 }]);
+
+  const butyne = appendEditorCarbonFragment({ atoms: [], bonds: [] }, 4, 1200, 600, 3);
+  assert.deepEqual(butyne.bonds.map(bond => bond.order), [3, 1, 1]);
+  assert.equal(appendEditorCarbonFragment({ atoms: [], bonds: [] }, 1, 1200, 600, 3), null);
+});
+
+test("fragment shortcuts are inside a vertical rail beside the drawing surface", () => {
+  const markup = structureEditorMarkup();
+  const area = markup.indexOf('class="chem-editor-drawing-area"');
+  const rail = markup.indexOf('class="chem-fragment-tools"');
+  const surface = markup.indexOf('class="chem-editor-canvas-wrap"');
+  const toolbarEnd = markup.indexOf('class="chem-editor-text-label"');
+  assert.ok(area >= 0 && rail > area && surface > rail && toolbarEnd > surface);
+  for (const label of ["اتین", "پروپین", "بوتین", "پنتین", "هگزین", "هپتین", "اوکتین", "نونین", "دکین"]) {
+    assert.ok(markup.includes(`data-fragment-label="${label}"`), label);
+  }
+  assert.match(markup, /data-fragment-bond="3"/);
+});
+
+test("desktop site and quiz content use the available viewport width", () => {
+  const css = readFileSync(new URL("../style.css", import.meta.url), "utf8");
+  assert.match(css, /main\s*\{[^}]*max-width:\s*none/s);
+  assert.match(css, /#quiz,#summary\s*\{[^}]*max-width:\s*none/s);
+  assert.doesNotMatch(css, /main\s*\{\s*max-width:\s*1600px/);
+});
+
 test("editor atoms have a larger drag target and preserve the pointer grab offset", () => {
   const source = readFileSync(new URL("../src/chemistry.js", import.meta.url), "utf8");
   const editor = source.slice(source.indexOf("export function mountStructureEditor"));
@@ -141,7 +171,7 @@ test("editor atoms have a larger drag target and preserve the pointer grab offse
 test("mobile editor canvas can scroll horizontally while atom touch remains draggable", () => {
   const css = readFileSync(new URL("../src/chemistry.css", import.meta.url), "utf8");
   assert.match(css, /\.chem-editor-canvas-wrap\s*\{[^}]*overflow: auto;/s);
-  assert.match(css, /\.chem-editor-canvas\s*\{[^}]*min-width: 720px/s);
+  assert.match(css, /\.chem-editor-canvas\s*\{[^}]*min-width: 760px/s);
   assert.match(css, /\.chem-editor-canvas\s*\{[^}]*touch-action: pan-x;/s);
   assert.match(css, /\.chem-editor-atom\s*\{[^}]*touch-action: none;/s);
 });
