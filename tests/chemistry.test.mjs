@@ -171,7 +171,7 @@ test("editor atoms have a larger drag target and preserve the pointer grab offse
 test("mobile editor canvas can scroll horizontally while atom touch remains draggable", () => {
   const css = readFileSync(new URL("../src/chemistry.css", import.meta.url), "utf8");
   assert.match(css, /\.chem-editor-canvas-wrap\s*\{[^}]*overflow: auto;/s);
-  assert.match(css, /\.chem-editor-canvas\s*\{[^}]*min-width: 720px/s);
+  assert.match(css, /\.chem-editor-canvas\s*\{[^}]*min-width: 760px/s);
   assert.match(css, /\.chem-editor-canvas\s*\{[^}]*touch-action: pan-x;/s);
   assert.match(css, /\.chem-editor-atom\s*\{[^}]*touch-action: none;/s);
 });
