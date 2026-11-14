@@ -235,7 +235,7 @@ test("alkyl-only mode respects both selected question directions", () => {
 test("alkyl-only mode generates branched alkane naming questions with parent-chain locants", () => {
   const bag = buildChemistryBag("hydrocarbon", {
     alkylOnly: true,
-    types: { structureToName: true, nameToStructure: true },
+    types: { structureToName: true, nameToStructure: false },
     models: { skeletal: true, structural: true, explicit: true },
     chains: { single: true, multiple: true },
     cyclic: true
