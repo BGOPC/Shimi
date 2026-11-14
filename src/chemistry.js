@@ -693,8 +693,9 @@ export function makeChemistryQuestion(data) {
 export function structureEditorMarkup() {
   return `<div class="chem-editor">
     <div class="chem-editor-tools">
-      <div class="chem-atom-tools" role="group" aria-label="افزودن اتم">
-        <button type="button" data-atom="C" class="is-active">C</button>
+      <div class="chem-atom-tools" role="group" aria-label="ابزار رسم و انتخاب">
+        <button type="button" data-editor-mode="select" class="chem-select-tool" aria-pressed="false" title="انتخاب اتم‌های موجود">✋ انتخاب</button>
+        <button type="button" data-atom="C" class="is-active" aria-pressed="true">C</button>
         <button type="button" data-atom="O">O</button>
         <button type="button" data-atom="N">N</button>
         <button type="button" data-atom="H">H</button>
@@ -729,6 +730,7 @@ export function mountStructureEditor(container) {
   let graph = { atoms: [], bonds: [] };
   let selected = [];
   let activeAtom = "C";
+  let activeMode = "add";
   let activeBond = 1;
   let source = "";
   let parseError = "";
@@ -795,10 +797,27 @@ export function mountStructureEditor(container) {
     parseError = "";
   };
   const updateSelectedTools = () => {
-    container.querySelectorAll("[data-atom]").forEach(button => button.classList.toggle("is-active", button.dataset.atom === activeAtom));
+    container.querySelectorAll("[data-atom]").forEach(button => {
+      const active = button.dataset.atom === activeAtom && activeMode === "add";
+      button.classList.toggle("is-active", active);
+      button.setAttribute("aria-pressed", String(active));
+    });
+    const selectButton = container.querySelector("[data-editor-mode=select]");
+    selectButton.classList.toggle("is-active", activeMode === "select");
+    selectButton.setAttribute("aria-pressed", String(activeMode === "select"));
     container.querySelectorAll("[data-bond]").forEach(button => button.classList.toggle("is-active", Number(button.dataset.bond) === activeBond));
   };
-  container.querySelectorAll("[data-atom]").forEach(button => button.addEventListener("click", () => { activeAtom = button.dataset.atom; updateSelectedTools(); tell(`اتم ${activeAtom} انتخاب شد؛ روی صفحه بزن.`); }));
+  container.querySelector("[data-editor-mode=select]").addEventListener("click", () => {
+    activeMode = "select";
+    updateSelectedTools();
+    tell("حالت انتخاب فعال شد؛ دو اتم موجود را انتخاب کن، سپس نوع پیوند را بزن.");
+  });
+  container.querySelectorAll("[data-atom]").forEach(button => button.addEventListener("click", () => {
+    activeAtom = button.dataset.atom;
+    activeMode = "add";
+    updateSelectedTools();
+    tell(`حالت افزودن فعال شد؛ برای افزودن اتم ${activeAtom} روی فضای خالی بزن.`);
+  }));
   container.querySelectorAll("[data-bond]").forEach(button => button.addEventListener("click", () => {
     activeBond = Number(button.dataset.bond);
     updateSelectedTools();
@@ -825,29 +844,32 @@ export function mountStructureEditor(container) {
   });
   canvas.addEventListener("click", event => {
     if (event.target.closest("[data-atom-id]")) return;
+    if (activeMode !== "add") {
+      if (selected.length) { selected = []; render(); }
+      tell("برای انتخاب پیوند، روی دو اتم موجود بزن.");
+      return;
+    }
     if (graph.atoms.length >= 18) return tell("برای جلوگیری از شلوغی، حداکثر ۱۸ اتم قابل افزودن است.");
     const point = canvas.createSVGPoint();
     point.x = event.clientX; point.y = event.clientY;
     const local = point.matrixTransform(canvas.getScreenCTM().inverse());
     const id = graph.atoms.length;
-    const previous = selected.length === 1 ? selected[0] : null;
     graph.atoms.push({ id, element: activeAtom, aromatic: false, x: Math.max(24, Math.min(696, local.x)), y: Math.max(24, Math.min(221, local.y)) });
-    selected = previous === null ? [id] : [previous, id];
+    selected = [];
     render(); syncText();
-    if (selected.length === 2) tell("دو اتم انتخاب شده‌اند؛ نوع پیوند را انتخاب کن.");
-    else tell(`اتم ${activeAtom} اضافه شد.`);
+    tell(`اتم ${activeAtom} اضافه شد؛ برای اتصال اتم‌ها ابزار انتخاب را بزن.`);
   });
   const selectAtom = id => {
     if (selected.includes(id)) selected = selected.filter(x => x !== id);
     else if (selected.length < 2) selected.push(id);
     else selected = [id];
     render();
-    if (selected.length === 2) tell("دو اتم انتخاب شده‌اند؛ نوع پیوند را انتخاب کن.");
+    if (selected.length === 2) tell("دو اتم موجود انتخاب شدند؛ نوع پیوند را برای اتصال یا تغییر پیوند بزن.");
     else tell(selected.length ? "اتم اول انتخاب شد؛ اتم دوم را انتخاب کن." : "انتخاب اتم لغو شد.");
   };
   canvas.addEventListener("click", event => {
     const node = event.target.closest("[data-atom-id]");
-    if (node) selectAtom(Number(node.dataset.atomId));
+    if (node && activeMode === "select") selectAtom(Number(node.dataset.atomId));
   });
   canvas.addEventListener("keydown", event => {
     if (event.key !== "Enter" && event.key !== " ") return;
