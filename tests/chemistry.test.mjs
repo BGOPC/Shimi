@@ -8,7 +8,8 @@ import {
   detectFunctionalGroups,
   buildChemistryBag,
   makeChemistryQuestion,
-  structureEditorMarkup
+  structureEditorMarkup,
+  layoutEditorGraph
 } from "../src/chemistry.js";
 
 
@@ -42,6 +43,31 @@ test("SMILES-like parser handles chains, branches, multiple bonds and rings", ()
   assert.equal(parseStructure("C="), null);
   assert.equal(parseStructure("C==O"), null);
   assert.equal(parseStructure("[CH3]"), null);
+});
+
+test("interactive editor layout preserves placed atoms and lays out text-entered molecules", () => {
+  const drawn = {
+    atoms: [
+      { id: 0, element: "C", x: 80, y: 100 },
+      { id: 1, element: "O", x: 210, y: 130 }
+    ],
+    bonds: [{ a: 0, b: 1, order: 2 }]
+  };
+  const preserved = layoutEditorGraph(drawn);
+  assert.deepEqual(preserved.atoms.map(atom => [atom.x, atom.y]), [[80, 100], [210, 130]]);
+  assert.deepEqual(preserved.bonds, drawn.bonds);
+
+  const textGraph = parseStructure("CC(C)CO");
+  const laidOut = layoutEditorGraph(textGraph);
+  assert.equal(laidOut.atoms.length, textGraph.atoms.length);
+  assert.equal(laidOut.bonds.length, textGraph.bonds.length);
+  assert.ok(laidOut.atoms.every(atom => Number.isFinite(atom.x) && Number.isFinite(atom.y)));
+  assert.ok(new Set(laidOut.atoms.map(atom => atom.y)).size > 1);
+  assert.ok(textGraph.atoms.every(atom => atom.x === undefined && atom.y === undefined));
+
+  const ring = layoutEditorGraph(parseStructure("C1CCCCC1"));
+  assert.ok(ring.atoms.every(atom => Number.isFinite(atom.x) && Number.isFinite(atom.y)));
+  assert.equal(ring.bonds.length, 6);
 });
 
 test("structure notation supports temporary disconnected editor atoms", () => {
