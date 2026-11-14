@@ -37,6 +37,8 @@
             <label class="chip"><input type="checkbox" value="molar" checked><span>جرم‌های مولی</span></label>
             <label class="chip"><input type="checkbox" value="comp" checked><span>ساخت ترکیب</span></label>
             <label class="chip"><input type="checkbox" value="elements" checked><span>عناصر جدول</span></label>
+            <label class="chip"><input type="checkbox" value="hydro"><span>نام‌گذاری هیدروکربن‌ها</span></label>
+            <label class="chip"><input type="checkbox" value="functional"><span>گروه‌های عاملی</span></label>
           </div>
         </div>
         <button class="btn primary" id="startMixed">شروع کوییز جامع</button>
@@ -144,7 +146,58 @@
     </div>
 
     </div>
+    <div class="chemistry-grid" id="chemistryGrid">
+      <section class="chemistry-card">
+        <h2>نام‌گذاری هیدروکربن‌ها</h2>
+        <p class="hint">از متان تا دکان، زنجیره‌ای، شاخه‌دار و حلقوی</p>
+        <p class="sub">نوع سؤال</p>
+        <div class="chips" id="hydroTypes">
+          <label class="chip"><input data-chem-setting id="hydroTypeDraw" type="checkbox" value="nameToStructure" checked><span>نام ← رسم ساختار</span></label>
+          <label class="chip"><input data-chem-setting id="hydroTypeName" type="checkbox" value="structureToName" checked><span>ساختار ← نام‌گذاری</span></label>
+        </div>
+        <p class="sub">مدل نمایش ساختار سؤال (می‌توانی چند مورد را انتخاب کنی)</p>
+        <div class="chips" id="hydroModels">
+          <label class="chip"><input data-chem-setting id="hydroModelSkeletal" type="checkbox" value="skeletal" checked><span>خط و زاویه</span></label>
+          <label class="chip"><input data-chem-setting id="hydroModelStructural" type="checkbox" value="structural" checked><span>بدون هیدروژن</span></label>
+          <label class="chip"><input data-chem-setting id="hydroModelExplicit" type="checkbox" value="explicit" checked><span>با هیدروژن‌ها</span></label>
+        </div>
+        <p class="sub">نوع زنجیره</p>
+        <div class="chips" id="hydroChains">
+          <label class="chip"><input data-chem-setting id="hydroChainSingle" type="checkbox" value="single" checked><span>تک‌زنجیره</span></label>
+          <label class="chip"><input data-chem-setting id="hydroChainMultiple" type="checkbox" value="multiple" checked><span>چندزنجیره / شاخه‌دار</span></label>
+        </div>
+        <div class="chips" id="hydroExtra">
+          <label class="chip"><input data-chem-setting id="hydroCyclic" type="checkbox" value="cyclic" checked><span>ترکیبات حلقوی</span></label>
+        </div>
+        <button class="btn primary" id="startHydrocarbon" type="button">شروع نام‌گذاری هیدروکربن‌ها</button>
+      </section>
 
+      <section class="chemistry-card">
+        <h2>گروه‌های عاملی</h2>
+        <p class="hint">تشخیص گروه، رسم ساختار، نام گروه و خانوادهٔ آن</p>
+        <p class="sub">نوع سؤال‌ها</p>
+        <div class="chips" id="functionalTypes">
+          <label class="chip"><input data-chem-setting id="functionalIdentify" type="checkbox" value="identify" checked><span>ترکیب ← گروه‌های عاملی</span></label>
+          <label class="chip"><input data-chem-setting id="functionalShapeName" type="checkbox" value="structureToName" checked><span>شکل گروه ← نام گروه</span></label>
+          <label class="chip"><input data-chem-setting id="functionalNameShape" type="checkbox" value="nameToStructure" checked><span>نام گروه ← رسم شکل</span></label>
+          <label class="chip"><input data-chem-setting id="functionalNameFamily" type="checkbox" value="nameToFamily" checked><span>نام گروه ← خانواده</span></label>
+          <label class="chip"><input data-chem-setting id="functionalShapeFamily" type="checkbox" value="shapeToFamily" checked><span>شکل گروه ← خانواده</span></label>
+        </div>
+        <p class="chem-setting-note">در تشخیص ترکیب، گروه‌های جامع‌تر مثل کربوکسیل، استر و آمید بر هم‌پوشانی‌های ساده‌تر اولویت دارند.</p>
+        <button class="btn primary" id="startFunctional" type="button">شروع آزمون گروه‌های عاملی</button>
+      </section>
+
+      <section class="chemistry-card chem-mixed-card">
+        <h2>آزمون جامع شیمی آلی</h2>
+        <p class="hint">ترکیب‌ها را نام‌گذاری کن و همهٔ گروه‌های عاملی آن‌ها را مشخص کن</p>
+        <div class="chips chem-mixed-options" id="chemMixedParts">
+          <label class="chip"><input data-chem-setting id="chemMixedHydro" type="checkbox" value="hydro" checked><span>سؤال‌های هیدروکربن</span></label>
+          <label class="chip"><input data-chem-setting id="chemMixedFunctional" type="checkbox" value="functional" checked><span>سؤال‌های گروه عاملی</span></label>
+          <label class="chip"><input data-chem-setting id="chemMixedIntegrated" type="checkbox" value="integrated" checked><span>سؤال ترکیبی: نام + گروه‌های عاملی</span></label>
+        </div>
+        <button class="btn primary" id="startChemMixed" type="button">شروع آزمون جامع شیمی آلی</button>
+      </section>
+    </div>
   </section>
 
   <section id="quiz" class="screen">

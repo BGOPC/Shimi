@@ -5,6 +5,8 @@ import { CATS, ANS, POLY } from "./data/ions.js";
 import { NM, PREC, COLORS } from "./data/precipitates.js";
 import { createElementPicker } from "./element-picker.js";
 import "./element-picker.css";
+import { buildChemistryBag, makeChemistryQuestion, mountStructureEditor } from "./chemistry.js";
+import "./chemistry.css";
 
 const $ = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];
@@ -341,7 +343,7 @@ const elementQ = (e, t) => {
   };
 };
 
-const mkQ = d => d.k === "ion" ? ionQ(d.i, d.d) : d.k === "prec" ? precQ(d.p, d.t) : d.k === "comp" ? compQ(d.ca, d.an, d.d) : d.k === "molar" ? molarQ(d.item, d.t) : elementQ(d.e, d.t);
+const mkQ = d => d.k === "ion" ? ionQ(d.i, d.d) : d.k === "prec" ? precQ(d.p, d.t) : d.k === "comp" ? compQ(d.ca, d.an, d.d) : d.k === "molar" ? molarQ(d.item, d.t) : d.k === "chem" ? makeChemistryQuestion(d) : elementQ(d.e, d.t);
 
 const S = { mode: "quiz", bag: [], last: null, right: 0, total: 0, streak: 0, best: 0, missed: [], cur: null, locked: false, cfg: {}, timerEnabled: true, timerStartedAt: null, elapsedMs: 0, timerInterval: null };
 
@@ -398,6 +400,7 @@ const buildBagFor = (mode, c) => {
       types.forEach(t => a.push({ k: "element", e, t }));
     });
   }
+  if (mode === "hydrocarbon" || mode === "functional" || mode === "chemMixed") return buildChemistryBag(mode, c);
   return a;
 };
 
@@ -417,6 +420,8 @@ const buildBag = () => {
       nameAndSymbolFromNumber: true,
       selectedElements: elementPicker.getSelected()
     }));
+    if (c.hydro) a.push(...buildChemistryBag("hydrocarbon", c.hydroCfg || {}));
+    if (c.functional) a.push(...buildChemistryBag("functional", c.functionalCfg || {}));
     return shuffle(a);
   }
   return shuffle(buildBagFor(S.mode, S.cfg));
@@ -444,7 +449,14 @@ const updateTimer = () => {
   $("#stTimer").textContent = "⏱ " + formatDuration(S.elapsedMs);
 };
 
+const renderQuizField = f => {
+  if (f.type === "structure") return `<div class="fld chem-structure-field" id="fld_${f.id}"><span>${f.label}</span><div id="chemEditorMount"></div><small class="fb" id="fb_${f.id}"></small></div>`;
+  if (f.type === "multi") return `<div class="fld chem-multi-field" id="fld_${f.id}"><span>${f.label}</span><div class="chem-multi-options">${f.options.map(option => `<label class="chem-answer-option"><input type="checkbox" name="in_${f.id}" value="${option.value}"><span>${option.label}</span></label>`).join("")}</div><small class="fb" id="fb_${f.id}"></small></div>`;
+  if (f.type === "choice") return `<div class="fld chem-choice-field" id="fld_${f.id}"><span>${f.label}</span><div class="chem-choice-options">${f.options.map(option => `<label class="chem-answer-option"><span><input type="radio" name="in_${f.id}" value="${option.value}">${option.label}</span>${option.html || ""}</label>`).join("")}</div><small class="fb" id="fb_${f.id}"></small></div>`;
+  return `<div class="fld" id="fld_${f.id}"><label for="in_${f.id}"><span>${f.label}</span></label><input class="in ${f.dir}" id="in_${f.id}" dir="${f.dir}" type="text" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="done" placeholder="${f.ph}">${f.charge ? `<div class="charge-options" role="group" aria-label="انتخاب بار">${["-1", "-2", "-3", "+1", "+2", "+3"].map(c => `<button class="charge-option" type="button" data-charge="${c}" data-charge-for="${f.id}" aria-pressed="false">${c}</button>`).join("")}</div>` : ""}<small class="fb" id="fb_${f.id}"></small></div>`;
+};
 const nextQ = () => {
+  if (S.cur?.editor) S.cur.editor.destroy();
   if (!S.bag.length) {
     S.bag = buildBag();
     if (S.bag.length > 1 && S.last && S.bag[S.bag.length - 1] === S.last) {
@@ -460,11 +472,8 @@ const nextQ = () => {
   $("#qBadge").textContent = q.badge;
   $("#qBadge").classList.toggle("hidden", !q.badge);
   $("#qPrompt").innerHTML = q.prompt;
-  $("#fields").innerHTML = q.fields.map(f =>
-    `<div class="fld" id="fld_${f.id}"><label for="in_${f.id}"><span>${f.label}</span></label>` +
-    `<input class="in ${f.dir}" id="in_${f.id}" dir="${f.dir}" type="text" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="done" placeholder="${f.ph}">` +
-    (f.charge ? `<div class="charge-options" role="group" aria-label="انتخاب بار">${["-1", "-2", "-3", "+1", "+2", "+3"].map(c => `<button class="charge-option" type="button" data-charge="${c}" data-charge-for="${f.id}" aria-pressed="false">${c}</button>`).join("")}</div>` : "") +
-    `<small class="fb" id="fb_${f.id}"></small></div>`).join("");
+  $("#fields").innerHTML = q.fields.map(renderQuizField).join("");
+  S.cur.editor = q.editor ? mountStructureEditor($("#chemEditorMount")) : null;
   $$("#fields .charge-option").forEach(btn => btn.addEventListener("click", () => {
     if (S.locked) return;
     const input = $("#in_" + btn.dataset.chargeFor);
@@ -479,7 +488,7 @@ const nextQ = () => {
   $("#result").className = "result hidden";
   $("#result").innerHTML = "";
   $("#actBtn").textContent = "بررسی";
-  const first = $("#fields input");
+  const first = $("#fields input, #fields textarea");
   if (first) first.focus();
 };
 
@@ -487,7 +496,12 @@ const act = () => {
   if (!S.cur) return;
   if (S.locked) { nextQ(); return; }
   const q = S.cur.q, v = {};
-  q.fields.forEach(f => v[f.id] = $("#in_" + f.id).value);
+  q.fields.forEach(f => {
+    if (f.type === "structure") v[f.id] = S.cur.editor?.getValue();
+    else if (f.type === "multi") v[f.id] = [...$$("#fld_" + f.id + " input:checked")].map(input => input.value);
+    else if (f.type === "choice") v[f.id] = $("#fld_" + f.id + " input:checked")?.value || "";
+    else v[f.id] = $("#in_" + f.id).value;
+  });
   const res = q.check(v);
   let ok = true;
   q.fields.forEach(f => {
@@ -495,7 +509,9 @@ const act = () => {
     ok = ok && r.ok;
     $("#fld_" + f.id).classList.add(r.ok ? "ok" : "bad");
     $("#fb_" + f.id).textContent = r.ok ? "✓ درست" : "✗ " + r.msg;
-    $("#in_" + f.id).readOnly = true;
+    if (f.type === "structure") S.cur.editor?.setDisabled(true);
+    else if (f.type === "multi" || f.type === "choice") $$("#fld_" + f.id + " input").forEach(input => input.disabled = true);
+    else $("#in_" + f.id).readOnly = true;
   });
   $$("#fields .charge-option").forEach(btn => btn.disabled = true);
   S.locked = true;
@@ -583,6 +599,16 @@ $("#timerEnabled").addEventListener("change", () => {
   try { localStorage.setItem("ionquizTimer", $("#timerEnabled").checked ? "1" : "0"); } catch (e) {}
 });
 
+const readHydroConfig = () => {
+  const extra = readChips("hydroExtra");
+  return { types: readChips("hydroTypes"), models: readChips("hydroModels"), chains: readChips("hydroChains"), cyclic: !!extra.cyclic };
+};
+const readFunctionalConfig = () => ({ types: readChips("functionalTypes") });
+const CHEM_SETTINGS_KEY = "organicChemistrySettings";
+const saveChemSettings = () => { try { const settings = {}; $$("[data-chem-setting]").forEach(input => settings[input.id] = input.checked); localStorage.setItem(CHEM_SETTINGS_KEY, JSON.stringify(settings)); } catch (e) {} };
+const loadChemSettings = () => { try { const settings = JSON.parse(localStorage.getItem(CHEM_SETTINGS_KEY) || "{}"); $$("[data-chem-setting]").forEach(input => { if (Object.prototype.hasOwnProperty.call(settings, input.id)) input.checked = !!settings[input.id]; }); } catch (e) {} };
+loadChemSettings();
+$$("[data-chem-setting]").forEach(input => input.addEventListener("change", saveChemSettings));
 const flash = el => {
   el.animate([{ transform: "translateX(0)" }, { transform: "translateX(-6px)" }, { transform: "translateX(6px)" }, { transform: "translateX(0)" }], { duration: 300 });
 };
@@ -628,7 +654,38 @@ $("#startElements").addEventListener("click", () => {
 $("#startMixed").addEventListener("click", () => {
   const cfg = readChips("mixedOptions");
   if (!anyOn(cfg)) { flash($("#mixedOptions")); return; }
+  cfg.hydroCfg = readHydroConfig();
+  cfg.functionalCfg = readFunctionalConfig();
   start("mixed", cfg);
+});
+
+$("#startHydrocarbon").addEventListener("click", () => {
+  const cfg = readHydroConfig();
+  if (!anyOn(cfg.types) || (!anyOn(cfg.chains) && !cfg.cyclic) || (cfg.types.structureToName && !anyOn(cfg.models))) {
+    flash(!anyOn(cfg.types) ? $("#hydroTypes") : !anyOn(cfg.chains) && !cfg.cyclic ? $("#hydroChains") : $("#hydroModels"));
+    return;
+  }
+  saveChemSettings();
+  start("hydrocarbon", cfg);
+});
+
+$("#startFunctional").addEventListener("click", () => {
+  const cfg = readFunctionalConfig();
+  if (!anyOn(cfg.types)) { flash($("#functionalTypes")); return; }
+  saveChemSettings();
+  start("functional", cfg);
+});
+
+$("#startChemMixed").addEventListener("click", () => {
+  const parts = readChips("chemMixedParts");
+  if (!anyOn(parts)) { flash($("#chemMixedParts")); return; }
+  const hydroConfig = readHydroConfig();
+  const functionalConfig = readFunctionalConfig();
+  if (parts.hydro && (!anyOn(hydroConfig.types) || (!anyOn(hydroConfig.chains) && !hydroConfig.cyclic) || (hydroConfig.types.structureToName && !anyOn(hydroConfig.models)))) { flash(!anyOn(hydroConfig.types) ? $("#hydroTypes") : !anyOn(hydroConfig.chains) && !hydroConfig.cyclic ? $("#hydroChains") : $("#hydroModels")); return; }
+  if (parts.functional && !anyOn(functionalConfig.types)) { flash($("#functionalTypes")); return; }
+  const cfg = { hydro: parts.hydro ? hydroConfig : null, functional: parts.functional ? functionalConfig : null, hydroConfig, functionalConfig, integrated: !!parts.integrated };
+  saveChemSettings();
+  start("chemMixed", cfg);
 });
 
 $("#actBtn").addEventListener("click", act);
@@ -638,6 +695,8 @@ $("#backHome").addEventListener("click", () => show("home"));
 document.addEventListener("keydown", e => {
   if (e.key !== "Enter" || !$("#quiz").classList.contains("active")) return;
   if (e.target.closest && e.target.closest(".charge-option")) return;
+  if (e.target.closest && (e.target.closest(".chem-editor-tools") || e.target.closest(".chem-editor-canvas"))) return;
+  if (e.target.matches && e.target.matches('input[type="checkbox"], input[type="radio"]')) { e.preventDefault(); act(); return; }
   e.preventDefault();
   const ins = $$("#fields input"), i = ins.indexOf(document.activeElement);
   if (!S.locked && i >= 0 && i < ins.length - 1) { ins[i + 1].focus(); return; }
