@@ -179,42 +179,125 @@ export function parseStructure(text) {
   return { atoms, bonds };
 }
 
-function layoutGraph(graph) {
+function atomNeighbours(graph) {
+  const adjacency = graph.atoms.map(() => []);
+  graph.bonds.forEach(bond => {
+    adjacency[bond.a].push({ id: bond.b, order: bond.order });
+    adjacency[bond.b].push({ id: bond.a, order: bond.order });
+  });
+  return adjacency;
+}
+
+function longestPathInTree(adjacency) {
+  const walk = start => {
+    const parent = Array(adjacency.length).fill(-1);
+    const distance = Array(adjacency.length).fill(-1);
+    const queue = [start];
+    parent[start] = start;
+    distance[start] = 0;
+    for (let index = 0; index < queue.length; index++) {
+      const current = queue[index];
+      adjacency[current].forEach(edge => {
+        if (distance[edge.id] !== -1) return;
+        parent[edge.id] = current;
+        distance[edge.id] = distance[current] + 1;
+        queue.push(edge.id);
+      });
+    }
+    let farthest = start;
+    for (let id = 0; id < distance.length; id++) {
+      if (distance[id] > distance[farthest]) farthest = id;
+    }
+    return { farthest, parent, distance };
+  };
+  const first = walk(0);
+  const second = walk(first.farthest);
+  const path = [];
+  let node = second.farthest;
+  while (node !== first.farthest) {
+    path.push(node);
+    node = second.parent[node];
+  }
+  path.push(first.farthest);
+  return path.reverse();
+}
+
+function layoutMoleculeGraph(graph, mode) {
+  if (graph.atoms.every(atom => Number.isFinite(atom.x) && Number.isFinite(atom.y))) return layoutGraph(graph);
   const atoms = graph.atoms.map(atom => ({ ...atom }));
   const bonds = graph.bonds;
-  const adjacency = atoms.map(() => []);
-  bonds.forEach(b => { adjacency[b.a].push(b.b); adjacency[b.b].push(b.a); });
-  if (atoms.length > 2 && bonds.length === atoms.length && adjacency.every(list => list.length === 2) && atoms.every(atom => !Number.isFinite(atom.x) || !Number.isFinite(atom.y))) {
-    const radius = Math.max(62, Math.min(112, atoms.length * 14));
+  const adjacency = atomNeighbours(graph);
+  const isSimpleRing = atoms.length > 2 && bonds.length === atoms.length && adjacency.every(edges => edges.length === 2);
+  if (isSimpleRing) {
+    const radius = Math.max(82, Math.min(150, atoms.length * 20));
     atoms.forEach((atom, index) => {
       const angle = -Math.PI / 2 + index * Math.PI * 2 / atoms.length;
-      atom.x = 390 + Math.cos(angle) * radius;
-      atom.y = 132 + Math.sin(angle) * radius;
+      atom.x = 180 + Math.cos(angle) * radius;
+      atom.y = 180 + Math.sin(angle) * radius;
     });
     return { atoms, bonds };
   }
-  const assigned = new Set();
-  for (let i = 0; i < atoms.length; i++) {
-    if (assigned.has(i)) continue;
-    const queue = [{ id: i, parent: -1, depth: 0, lane: 0 }];
-    assigned.add(i);
-    while (queue.length) {
-      const current = queue.shift();
-      const node = atoms[current.id];
-      if (!Number.isFinite(node.x) || !Number.isFinite(node.y)) {
-        node.x = 54 + current.depth * 82;
-        node.y = 128 + (current.depth % 2 === 0 ? -27 : 27) + current.lane * 50;
-      }
-      const children = adjacency[current.id].filter(id => id !== current.parent && !assigned.has(id));
-      children.forEach((child, k) => {
-        assigned.add(child);
-        const lane = current.lane + (k - (children.length - 1) / 2);
-        queue.push({ id: child, parent: current.id, depth: current.depth + 1, lane });
-      });
-    }
-  }
+
+  const path = bonds.length === atoms.length - 1
+    ? longestPathInTree(adjacency)
+    : layoutGraph(graph).atoms.map(atom => atom.id);
+  const onPath = new Set(path);
+  const step = 112;
+  const baseY = 190;
+  const zigzag = mode === "skeletal";
+  const pathWidth = Math.max(0, path.length - 1) * step;
+  const startX = Math.max(70, (pathWidth + 140) / 2 - pathWidth / 2);
+  path.forEach((id, index) => {
+    atoms[id].x = startX + index * step;
+    atoms[id].y = baseY + (zigzag ? (index % 2 ? -28 : 28) : 0);
+  });
+
+  const placed = new Set(onPath);
+  const placeBranch = (id, parentId, x, y, direction, depth) => {
+    if (placed.has(id)) return;
+    placed.add(id);
+    atoms[id].x = x;
+    atoms[id].y = y;
+    const children = adjacency[id]
+      .filter(edge => edge.id !== parentId && !placed.has(edge.id))
+      .map(edge => edge.id);
+    children.forEach((child, index) => {
+      const spread = (index - (children.length - 1) / 2) * 64;
+      placeBranch(
+        child,
+        id,
+        x + spread,
+        y + direction * 82,
+        direction,
+        depth + 1
+      );
+    });
+  };
+
+  path.forEach((id, index) => {
+    const branches = adjacency[id].filter(edge => !onPath.has(edge.id));
+    branches.forEach((branch, branchIndex) => {
+      const direction = index % 2 === 0 ? -1 : 1;
+      const spread = (branchIndex - (branches.length - 1) / 2) * 56;
+      placeBranch(
+        branch.id,
+        id,
+        atoms[id].x + spread,
+        atoms[id].y + direction * 82,
+        direction,
+        1
+      );
+    });
+  });
+
+  atoms.forEach((atom, id) => {
+    if (Number.isFinite(atom.x) && Number.isFinite(atom.y)) return;
+    atom.x = 70 + id * 54;
+    atom.y = baseY + 150;
+  });
   return { atoms, bonds };
 }
+
 function implicitHydrogens(atom, graph) {
   const valence = { C: 4, O: 2, N: 3, S: 2, F: 1, Cl: 1, Br: 1 }[atom.element];
   if (!valence) return 0;
@@ -222,35 +305,99 @@ function implicitHydrogens(atom, graph) {
   return Math.max(0, valence - used);
 }
 
+function clippedLabelBondLines(a, b, order, halfWidthA, halfHeightA, halfWidthB, halfHeightB) {
+  const dx = b.x - a.x, dy = b.y - a.y;
+  const length = Math.max(1, Math.hypot(dx, dy));
+  const ux = dx / length, uy = dy / length;
+  const px = -uy, py = ux;
+  const reach = (halfWidth, halfHeight, ox, oy) => {
+    const xDistance = Math.abs(ox) < 1e-6 ? Infinity : halfWidth / Math.abs(ox);
+    const yDistance = Math.abs(oy) < 1e-6 ? Infinity : halfHeight / Math.abs(oy);
+    return Math.min(xDistance, yDistance);
+  };
+  const markup = [];
+  for (let index = 0; index < order; index++) {
+    const offset = (index - (order - 1) / 2) * 5;
+    const startDistance = reach(halfWidthA, halfHeightA, ux, uy);
+    const endDistance = reach(halfWidthB, halfHeightB, ux, uy);
+    const x1 = a.x + ux * startDistance + px * offset;
+    const y1 = a.y + uy * startDistance + py * offset;
+    const x2 = b.x - ux * endDistance + px * offset;
+    const y2 = b.y - uy * endDistance + py * offset;
+    markup.push(`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" />`);
+  }
+  return markup.join("");
+}
+
 export function renderMoleculeSvg(input, mode = "structural", className = "molecule-preview") {
   const graph = typeof input === "string" ? parseStructure(input) : input;
   if (!graph || !graph.atoms.length) return "<div class=\"chem-empty\">ساختار قابل نمایش نیست</div>";
-  const positioned = layoutGraph(graph);
+  const positioned = layoutMoleculeGraph(graph, mode);
   const display = positioned.atoms.map(atom => {
-    const showCarbon = mode !== "skeletal" || atom.element !== "C" || graph.atoms.length === 1;
+    const showAtom = mode !== "skeletal" || atom.element !== "C" || graph.atoms.length === 1;
     const hydrogenCount = mode === "explicit" ? implicitHydrogens(atom, graph) : 0;
     const label = atom.element + (hydrogenCount ? `H${toSub(hydrogenCount)}` : "");
-    const radius = !showCarbon ? 4 : Math.max(20, Math.min(30, 12 + label.length * 6));
-    return { atom, showCarbon, label, radius };
+    const halfWidth = showAtom ? Math.max(12, label.length * 7 + 5) : 4;
+    return { atom, showAtom, label, halfWidth, halfHeight: showAtom ? 17 : 4 };
   });
-  const radiusById = new Map(display.map(item => [item.atom.id, item.radius]));
-  const xs = positioned.atoms.map(a => a.x);
-  const ys = positioned.atoms.map(a => a.y);
-  const maxRadius = Math.max(...display.map(item => item.radius));
-  const minX = Math.min(...xs) - maxRadius - 10, maxX = Math.max(...xs) + maxRadius + 10;
-  const minY = Math.min(...ys) - maxRadius - 10, maxY = Math.max(...ys) + maxRadius + 10;
-  const width = Math.max(150, maxX - minX), height = Math.max(110, maxY - minY);
+  const displayById = new Map(display.map(item => [item.atom.id, item]));
+  const xs = display.map(item => item.atom.x);
+  const ys = display.map(item => item.atom.y);
+  const minX = Math.min(...display.map(item => item.atom.x - item.halfWidth)) - 32;
+  const maxX = Math.max(...display.map(item => item.atom.x + item.halfWidth)) + 32;
+  const minY = Math.min(...display.map(item => item.atom.y - item.halfHeight)) - 28;
+  const maxY = Math.max(...display.map(item => item.atom.y + item.halfHeight)) + 28;
+  const width = Math.max(160, maxX - minX);
+  const height = Math.max(100, maxY - minY);
   const bondMarkup = positioned.bonds.map(bond => {
-    const a = positioned.atoms[bond.a], b = positioned.atoms[bond.b];
-    return clippedBondLines(a, b, bond.order, radiusById.get(a.id), radiusById.get(b.id));
+    const first = displayById.get(bond.a), second = displayById.get(bond.b);
+    return clippedLabelBondLines(
+      first.atom, second.atom, bond.order,
+      first.halfWidth, first.halfHeight,
+      second.halfWidth, second.halfHeight
+    );
   }).join("");
-  const atomMarkup = display.map(({ atom, showCarbon, label, radius }) => {
-    if (!showCarbon) return `<circle class="molecule-vertex" cx="${atom.x}" cy="${atom.y}" r="4.2" />`;
-    return `<g class="molecule-atom atom-${atom.element.toLowerCase()}"><circle class="atom-node" cx="${atom.x}" cy="${atom.y}" r="${radius}" /><text x="${atom.x}" y="${atom.y + 5}" text-anchor="middle">${escapeHtml(label)}</text></g>`;
+  const atomMarkup = display.map(({ atom, showAtom, label }) => {
+    if (!showAtom) return `<circle class="molecule-vertex" cx="${atom.x}" cy="${atom.y}" r="4.5" />`;
+    const labelMarkup = label.replace(/H([₀-₉]+)/, "H<tspan class=\"atom-subscript\">$1</tspan>");
+    return `<text class="molecule-atom atom-${atom.element.toLowerCase()}" x="${atom.x}" y="${atom.y + 7}" text-anchor="middle">${labelMarkup}</text>`;
   }).join("");
-  return `<svg class="${className}" viewBox="${minX} ${minY} ${width} ${height}" role="img" aria-label="ساختار مولکولی"><g class="molecule-bonds">${bondMarkup}</g><g class="molecule-atoms">${atomMarkup}</g></svg>`;
+  return `<svg class="${className}" viewBox="${minX} ${minY} ${width} ${height}" role="img" aria-label="ساختار مولکولی" preserveAspectRatio="xMidYMid meet"><g class="molecule-bonds">${bondMarkup}</g><g class="molecule-atoms">${atomMarkup}</g></svg>`;
 }
-function graphWithoutHydrogen(graph) {
+
+function carbonChainLength(graph) {
+  if (!graph || !graph.atoms.length) return 0;
+  const carbonIds = graph.atoms.filter(atom => atom.element === "C").map(atom => atom.id);
+  if (!carbonIds.length) return 0;
+  const carbonSet = new Set(carbonIds);
+  const adjacency = new Map(carbonIds.map(id => [id, []]));
+  graph.bonds.forEach(bond => {
+    if (!carbonSet.has(bond.a) || !carbonSet.has(bond.b)) return;
+    adjacency.get(bond.a).push(bond.b);
+    adjacency.get(bond.b).push(bond.a);
+  });
+  if (carbonIds.length > 2 && carbonIds.every(id => adjacency.get(id).length === 2)) return carbonIds.length;
+  const walk = start => {
+    const distance = new Map([[start, 0]]);
+    const queue = [start];
+    for (let index = 0; index < queue.length; index++) {
+      const current = queue[index];
+      adjacency.get(current).forEach(next => {
+        if (distance.has(next)) return;
+        distance.set(next, distance.get(current) + 1);
+        queue.push(next);
+      });
+    }
+    let farthest = start;
+    distance.forEach((value, id) => { if (value > distance.get(farthest)) farthest = id; });
+    return { farthest, distance };
+  };
+  const first = walk(carbonIds[0]);
+  return walk(first.farthest).distance.size
+    ? walk(first.farthest).distance.get(walk(first.farthest).farthest) + 1
+    : 0;
+}
+(graph) {
   const kept = graph.atoms.filter(a => a.element !== "H");
   const ids = new Map(kept.map((a, i) => [a.id, i]));
   return {
