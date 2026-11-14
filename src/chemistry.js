@@ -336,7 +336,7 @@ export function renderMoleculeSvg(input, mode = "structural", className = "molec
   const display = positioned.atoms.map(atom => {
     const showAtom = mode !== "skeletal" || atom.element !== "C" || graph.atoms.length === 1;
     const hydrogenCount = mode === "explicit" ? implicitHydrogens(atom, graph) : 0;
-    const label = atom.element + (hydrogenCount ? `H${toSub(hydrogenCount)}` : "");
+    const label = atom.element + (hydrogenCount ? "H" + (hydrogenCount > 1 ? toSub(hydrogenCount) : "") : "");
     const halfWidth = showAtom ? Math.max(12, label.length * 7 + 5) : 4;
     return { atom, showAtom, label, halfWidth, halfHeight: showAtom ? 17 : 4 };
   });
