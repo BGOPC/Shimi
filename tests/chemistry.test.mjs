@@ -52,7 +52,7 @@ test("SVG renderer supports skeletal, structural and explicit-hydrogen modes", (
   assert.match(skeletal, /<svg/);
   assert.doesNotMatch(skeletal, />C</);
   assert.match(structural, />C</);
-  assert.match(explicit, /H[₀-₉]/);
+  assert.match(explicit, /H<tspan class="atom-subscript">[₂₃]/);
   assert.match(renderMoleculeSvg("C", "skeletal"), />C</);
 });
 
@@ -111,20 +111,75 @@ test("all generated hydrocarbon questions accept their canonical answer", () => 
   assert.ok(bag.some(item => item.kind === "hydroName" && item.style === "explicit"));
 });
 
-test("atom-based SVG styles clip bonds at circular nodes and skeletal chains zig-zag", () => {
-  const structural = renderMoleculeSvg("CCO", "structural");
-  const explicit = renderMoleculeSvg("CCO", "explicit");
+test("molecule renderer uses tidy horizontal chains, clear vertical branches and label-edge bonds", () => {
+  const structural = renderMoleculeSvg("CC(C)CCC", "structural");
+  const explicit = renderMoleculeSvg("CC(C)CCC", "explicit");
   const skeletal = renderMoleculeSvg("CCCO", "skeletal");
-  assert.match(structural, /class="atom-node"/);
-  assert.match(explicit, /class="atom-node"/);
-  assert.match(structural, /<circle class="atom-node"/);
+  assert.match(structural, /class="molecule-atom atom-/);
+  assert.match(explicit, /CH<tspan class="atom-subscript">₃<\/tspan>/);
+  assert.match(explicit, /CH<tspan class="atom-subscript">₂<\/tspan>/);
+  assert.doesNotMatch(structural, /atom-node/);
   assert.match(skeletal, /class="molecule-vertex"/);
+  const atomPositions = [...structural.matchAll(/class="molecule-atom atom-[^"]+" x="([^"]+)" y="([^"]+)"/g)]
+    .map(match => ({ x: Number(match[1]), y: Number(match[2]) }));
+  assert.equal(atomPositions.length, 6);
+  assert.ok(new Set(atomPositions.map(point => point.y)).size > 1);
+  const chainY = atomPositions.filter(point => point.y === atomPositions[0].y);
+  assert.ok(chainY.length >= 4);
   const vertices = [...skeletal.matchAll(/class="molecule-vertex" cx="[^"]+" cy="([^"]+)"/g)].map(match => Number(match[1]));
   assert.ok(new Set(vertices).size > 1);
   const line = structural.match(/<line x1="([^"]+)" y1="([^"]+)" x2="([^"]+)" y2="([^"]+)"/);
-  const circle = structural.match(/<circle class="atom-node" cx="([^"]+)" cy="([^"]+)" r="([^"]+)"/);
-  assert.ok(line && circle);
-  assert.notEqual(Number(line[1]), Number(circle[1]));
+  const atom = structural.match(/class="molecule-atom atom-[^"]+" x="([^"]+)" y="([^"]+)"/);
+  assert.ok(line && atom);
+  assert.notEqual(Number(line[1]), Number(atom[1]));
+});
+
+test("hydrocarbon question settings cap the main carbon chain or ring size", () => {
+  const limited = buildChemistryBag("hydrocarbon", {
+    maxCarbons: 4,
+    types: { nameToStructure: true, structureToName: true },
+    models: { skeletal: true, structural: true, explicit: true },
+    chains: { single: true, multiple: true },
+    cyclic: true
+  });
+  const longestCarbonPath = graph => {
+    const ids = graph.atoms.filter(atom => atom.element === "C").map(atom => atom.id);
+    const adjacency = new Map(ids.map(id => [id, []]));
+    graph.bonds.forEach(bond => {
+      if (!adjacency.has(bond.a) || !adjacency.has(bond.b)) return;
+      adjacency.get(bond.a).push(bond.b);
+      adjacency.get(bond.b).push(bond.a);
+    });
+    if (ids.length > 2 && ids.every(id => adjacency.get(id).length === 2)) return ids.length;
+    const walk = start => {
+      const distance = new Map([[start, 0]]), queue = [start];
+      for (let i = 0; i < queue.length; i++) {
+        adjacency.get(queue[i]).forEach(next => {
+          if (distance.has(next)) return;
+          distance.set(next, distance.get(queue[i]) + 1);
+          queue.push(next);
+        });
+      }
+      let farthest = start;
+      distance.forEach((value, id) => { if (value > distance.get(farthest)) farthest = id; });
+      return { farthest, distance };
+    };
+    const first = walk(ids[0]);
+    const second = walk(first.farthest);
+    return second.distance.get(second.farthest) + 1;
+  };
+  assert.ok(limited.length > 0);
+  assert.ok(limited.every(item => longestCarbonPath(item.graph) <= 4));
+  assert.equal(limited.some(item => item.molecule.name === "پنتان" || item.molecule.name === "بنزن"), false);
+  const alkylLimited = buildChemistryBag("hydrocarbon", {
+    maxCarbons: 4,
+    alkylOnly: true,
+    types: { structureToName: true },
+    models: { structural: true },
+    chains: { multiple: true }
+  });
+  assert.ok(alkylLimited.length > 0);
+  assert.ok(alkylLimited.every(item => longestCarbonPath(item.graph) <= 4));
 });
 
 test("alkyl-only mode generates branched alkane naming questions with parent-chain locants", () => {

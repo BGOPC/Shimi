@@ -608,13 +608,31 @@ const readHydroConfig = () => {
     models: readChips("hydroModels"),
     chains: readChips("hydroChains"),
     cyclic: !!extra.cyclic && !alkylOnly,
-    alkylOnly
+    alkylOnly,
+    maxCarbons: Number($("#hydroMaxCarbons").value || 10)
   };
 };
 const readFunctionalConfig = () => ({ types: readChips("functionalTypes") });
 const CHEM_SETTINGS_KEY = "organicChemistrySettings";
-const saveChemSettings = () => { try { const settings = {}; $$("[data-chem-setting]").forEach(input => settings[input.id] = input.checked); localStorage.setItem(CHEM_SETTINGS_KEY, JSON.stringify(settings)); } catch (e) {} };
-const loadChemSettings = () => { try { const settings = JSON.parse(localStorage.getItem(CHEM_SETTINGS_KEY) || "{}"); $$("[data-chem-setting]").forEach(input => { if (Object.prototype.hasOwnProperty.call(settings, input.id)) input.checked = !!settings[input.id]; }); } catch (e) {} };
+const saveChemSettings = () => {
+  try {
+    const settings = {};
+    $$("[data-chem-setting]").forEach(control => {
+      settings[control.id] = control.type === "checkbox" ? control.checked : control.value;
+    });
+    localStorage.setItem(CHEM_SETTINGS_KEY, JSON.stringify(settings));
+  } catch (e) {}
+};
+const loadChemSettings = () => {
+  try {
+    const settings = JSON.parse(localStorage.getItem(CHEM_SETTINGS_KEY) || "{}");
+    $$("[data-chem-setting]").forEach(control => {
+      if (!Object.prototype.hasOwnProperty.call(settings, control.id)) return;
+      if (control.type === "checkbox") control.checked = !!settings[control.id];
+      else control.value = String(settings[control.id]);
+    });
+  } catch (e) {}
+};
 loadChemSettings();
 $$("[data-chem-setting]").forEach(input => input.addEventListener("change", saveChemSettings));
 const flash = el => {
@@ -675,17 +693,6 @@ $("#startHydrocarbon").addEventListener("click", () => {
   }
   saveChemSettings();
   start("hydrocarbon", cfg);
-});
-
-$("#startHydrocarbonExam").addEventListener("click", () => {
-  const cfg = readHydroConfig();
-  if (!cfg.alkylOnly && !anyOn(cfg.chains) && !cfg.cyclic) {
-    flash($("#hydroChains"));
-    return;
-  }
-  cfg.types = cfg.alkylOnly ? { structureToName: true } : { nameToStructure: true, structureToName: true };
-  saveChemSettings();
-  start("hydroExam", cfg);
 });
 
 $("#startFunctional").addEventListener("click", () => {
