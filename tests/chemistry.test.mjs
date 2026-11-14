@@ -6,7 +6,8 @@ import {
   renderMoleculeSvg,
   detectFunctionalGroups,
   buildChemistryBag,
-  makeChemistryQuestion
+  makeChemistryQuestion,
+  structureEditorMarkup
 } from "../src/chemistry.js";
 
 test("SMILES-like parser handles chains, branches, multiple bonds and rings", () => {
@@ -23,6 +24,17 @@ test("SMILES-like parser handles chains, branches, multiple bonds and rings", ()
   assert.equal(parseStructure("C="), null);
   assert.equal(parseStructure("C==O"), null);
   assert.equal(parseStructure("[CH3]"), null);
+});
+
+test("structure notation supports temporary disconnected editor atoms", () => {
+  const graph = parseStructure("C.O.N");
+  assert.equal(graph.atoms.length, 3);
+  assert.equal(graph.bonds.length, 0);
+  assert.equal(parseStructure("C..O"), null);
+  assert.equal(parseStructure("C.=O"), null);
+  const markup = structureEditorMarkup();
+  assert.match(markup, /data-editor-mode="select"/);
+  assert.match(markup, /✋ انتخاب/);
 });
 
 test("structure matching is independent of atom numbering and drawing direction", () => {
