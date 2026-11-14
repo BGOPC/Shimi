@@ -694,14 +694,17 @@ function buildHydrocarbonBag(cfg = {}) {
   const includeCyclic = !!cfg.cyclic;
   const maxCarbons = Math.max(1, Math.min(10, Number(cfg.maxCarbons) || 10));
   if (cfg.alkylOnly) {
-    if (types.structureToName) {
-      generatedAlkylNamingMolecules(maxCarbons).forEach(molecule => {
-        const graph = parseStructure(molecule.smiles);
+    generatedAlkylNamingMolecules(maxCarbons).forEach(molecule => {
+      const graph = parseStructure(molecule.smiles);
+      if (types.nameToStructure) {
+        questions.push({ k: "chem", kind: "hydroDraw", molecule, graph });
+      }
+      if (types.structureToName) {
         (styles.length ? styles : ["structural"]).forEach(style => {
           questions.push({ k: "chem", kind: "hydroName", molecule, graph, style });
         });
-      });
-    }
+      }
+    });
     return questions;
   }
   HYDROCARBONS.forEach(entry => {

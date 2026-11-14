@@ -200,10 +200,42 @@ test("hydrocarbon question settings cap the main carbon chain or ring size", () 
   assert.ok(alkylLimited.every(item => longestCarbonPath(item.graph) <= 4));
 });
 
+test("alkyl-only mode respects both selected question directions", () => {
+  const drawOnly = buildChemistryBag("hydrocarbon", {
+    alkylOnly: true,
+    types: { nameToStructure: true, structureToName: false },
+    models: { skeletal: true, structural: true, explicit: true },
+    maxCarbons: 10
+  });
+  assert.ok(drawOnly.length > 0);
+  assert.ok(drawOnly.every(item => item.kind === "hydroDraw"));
+  const drawQuestion = makeChemistryQuestion(drawOnly[0]);
+  assert.equal(drawQuestion.editor, true);
+  assert.match(drawQuestion.prompt, /ساختار مولکول/);
+
+  const nameOnly = buildChemistryBag("hydrocarbon", {
+    alkylOnly: true,
+    types: { nameToStructure: false, structureToName: true },
+    models: { skeletal: true, structural: false, explicit: false },
+    maxCarbons: 10
+  });
+  assert.ok(nameOnly.length > 0);
+  assert.ok(nameOnly.every(item => item.kind === "hydroName"));
+
+  const both = buildChemistryBag("hydrocarbon", {
+    alkylOnly: true,
+    types: { nameToStructure: true, structureToName: true },
+    models: { skeletal: true, structural: false, explicit: false },
+    maxCarbons: 10
+  });
+  assert.ok(both.some(item => item.kind === "hydroDraw"));
+  assert.ok(both.some(item => item.kind === "hydroName"));
+});
+
 test("alkyl-only mode generates branched alkane naming questions with parent-chain locants", () => {
   const bag = buildChemistryBag("hydrocarbon", {
     alkylOnly: true,
-    types: { structureToName: true, nameToStructure: true },
+    types: { structureToName: true, nameToStructure: false },
     models: { skeletal: true, structural: true, explicit: true },
     chains: { single: true, multiple: true },
     cyclic: true
