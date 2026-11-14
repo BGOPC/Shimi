@@ -52,7 +52,7 @@ test("SVG renderer supports skeletal, structural and explicit-hydrogen modes", (
   assert.match(skeletal, /<svg/);
   assert.doesNotMatch(skeletal, />C</);
   assert.match(structural, />C</);
-  assert.match(explicit, /H[₀-₉]/);
+  assert.match(explicit, /H<tspan class="atom-subscript">[₂₃]/);
   assert.match(renderMoleculeSvg("C", "skeletal"), />C</);
 });
 
@@ -115,9 +115,9 @@ test("molecule renderer uses tidy horizontal chains, clear vertical branches and
   const structural = renderMoleculeSvg("CC(C)CC", "structural");
   const explicit = renderMoleculeSvg("CC(C)CC", "explicit");
   const skeletal = renderMoleculeSvg("CCCO", "skeletal");
-  assert.match(structural, /class="molecule-atom"/);
-  assert.match(explicit, /CH₃/);
-  assert.match(explicit, /CH₂/);
+  assert.match(structural, /class="molecule-atom atom-/);
+  assert.match(explicit, /CH<tspan class="atom-subscript">₃<\/tspan>/);
+  assert.match(explicit, /CH<tspan class="atom-subscript">₂<\/tspan>/);
   assert.doesNotMatch(structural, /atom-node/);
   assert.match(skeletal, /class="molecule-vertex"/);
   const atomPositions = [...structural.matchAll(/class="molecule-atom atom-[^"]+" x="([^"]+)" y="([^"]+)"/g)]
