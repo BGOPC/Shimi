@@ -393,9 +393,8 @@ function carbonChainLength(graph) {
     return { farthest, distance };
   };
   const first = walk(carbonIds[0]);
-  return walk(first.farthest).distance.size
-    ? walk(first.farthest).distance.get(walk(first.farthest).farthest) + 1
-    : 0;
+  const second = walk(first.farthest);
+  return second.distance.get(second.farthest) + 1;
 }
 (graph) {
   const kept = graph.atoms.filter(a => a.element !== "H");
