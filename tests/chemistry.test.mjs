@@ -138,6 +138,8 @@ test("alkyl-only mode generates branched alkane naming questions with parent-cha
   assert.ok(bag.length >= 10);
   assert.ok(bag.every(item => item.kind === "hydroName" && item.molecule.type === "alkyl"));
   assert.ok(bag.some(item => item.molecule.name === "۴،۴،۵-تری‌اتیل-۷،۷-دی‌متیل‌دکان"));
+  assert.ok(bag.some(item => item.molecule.name.includes("پروپیل")));
+  assert.ok(bag.some(item => item.molecule.name.includes("بوتیل")));
   for (const item of bag) {
     const question = makeChemistryQuestion(item);
     assert.equal(question.check({ name: item.molecule.name }).name.ok, true);
