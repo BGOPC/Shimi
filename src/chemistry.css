@@ -191,8 +191,8 @@
 .chem-editor-atom .atom-hit-area { fill: transparent; stroke: transparent; stroke-width: 1; pointer-events: all; }
 .chem-editor-atom .atom-visible { fill: var(--card); stroke: var(--acc-fg); stroke-width: 1.8; }
 .chem-editor-atom text { fill: var(--tx); font: 750 16px "Cambria Math", "Times New Roman", serif; pointer-events: none; }
-.chem-editor-atom.is-selected circle { fill: var(--acc); stroke: var(--on-acc); stroke-width: 2.2; }
-.chem-editor-atom:focus-visible circle { stroke: var(--hot); stroke-width: 3; }
+.chem-editor-atom.is-selected .atom-visible { fill: var(--acc); stroke: var(--on-acc); stroke-width: 2.2; }
+.chem-editor-atom:focus-visible .atom-visible { stroke: var(--hot); stroke-width: 3; }
 .chem-editor-text-label { display: block; margin: 11px 0 5px; font-size: .9rem; font-weight: 750; }
 .chem-structure-text {
   display: block;
