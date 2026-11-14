@@ -160,7 +160,7 @@
   width: 100%;
   min-width: 720px;
   height: clamp(360px, 42vw, 520px);
-  touch-action: none;
+  touch-action: pan-x;
   cursor: crosshair;
 }
 .chem-editor-canvas.is-dragging { cursor: grabbing; }
