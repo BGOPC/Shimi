@@ -9,7 +9,8 @@ import {
   buildChemistryBag,
   makeChemistryQuestion,
   structureEditorMarkup,
-  layoutEditorGraph
+  layoutEditorGraph,
+  appendEditorCarbonFragment
 } from "../src/chemistry.js";
 
 
@@ -78,6 +79,63 @@ test("interactive editor layout preserves placed atoms and lays out text-entered
   const ring = layoutEditorGraph(parseStructure("C1CCCCC1"));
   assert.ok(ring.atoms.every(atom => Number.isFinite(atom.x) && Number.isFinite(atom.y)));
   assert.equal(ring.bonds.length, 6);
+});
+
+test("editor fragment shortcuts add correctly bonded alkyl groups and alkanes", () => {
+  const methane = appendEditorCarbonFragment({ atoms: [], bonds: [] }, 1);
+  assert.ok(methane);
+  assert.equal(methane.atoms.length, 1);
+  assert.equal(methane.bonds.length, 0);
+
+  const ethyl = appendEditorCarbonFragment({ atoms: [], bonds: [] }, 2);
+  assert.equal(ethyl.atoms.length, 2);
+  assert.deepEqual(ethyl.bonds, [{ a: 0, b: 1, order: 1 }]);
+
+  const propyl = appendEditorCarbonFragment({ atoms: [], bonds: [] }, 3);
+  assert.equal(propyl.atoms.length, 3);
+  assert.deepEqual(propyl.bonds, [{ a: 0, b: 1, order: 1 }, { a: 1, b: 2, order: 1 }]);
+
+  const decane = appendEditorCarbonFragment({ atoms: [], bonds: [] }, 10);
+  assert.equal(decane.atoms.length, 10);
+  assert.equal(decane.bonds.length, 9);
+  assert.ok(decane.bonds.every(bond => bond.order === 1));
+  assert.ok(decane.atoms.every(atom => atom.element === "C"));
+});
+
+test("editor fragments stay separate until connected and obey the atom limit", () => {
+  const first = appendEditorCarbonFragment({ atoms: [], bonds: [] }, 1);
+  const second = appendEditorCarbonFragment(first, 2);
+  assert.equal(second.atoms.length, 3);
+  assert.deepEqual(second.bonds, [{ a: 1, b: 2, order: 1 }]);
+  assert.ok(second.atoms.slice(1).every(atom =>
+    Math.hypot(atom.x - second.atoms[0].x, atom.y - second.atoms[0].y) >= 48
+  ));
+  assert.ok(second.atoms.every(atom => Number.isFinite(atom.x) && Number.isFinite(atom.y)));
+
+  const full = {
+    atoms: Array.from({ length: 17 }, (_, id) => ({ id, element: "C", x: 40 + id * 60, y: 80 })),
+    bonds: []
+  };
+  assert.equal(appendEditorCarbonFragment(full, 2), null);
+  assert.equal(appendEditorCarbonFragment({ atoms: [], bonds: [] }, 11), null);
+});
+
+test("editor markup includes every carbon shortcut and the enlarged drawing canvas", () => {
+  const markup = structureEditorMarkup();
+  for (const label of ["متیل", "اتیل", "پروپیل", "متان", "اتان", "پروپان", "بوتان", "پنتان", "هگزان", "هپتان", "اوکتان", "نونان", "دکان"]) {
+    assert.ok(markup.includes(`data-fragment-label="${label}"`), label);
+  }
+  assert.match(markup, /viewBox="0 0 1200 600"/);
+  assert.match(markup, /data-editor-fragment="10"/);
+});
+
+test("editor atoms have a larger drag target and preserve the pointer grab offset", () => {
+  const source = readFileSync(new URL("../src/chemistry.js", import.meta.url), "utf8");
+  const editor = source.slice(source.indexOf("export function mountStructureEditor"));
+  assert.match(editor, /class="atom-hit-area"/);
+  assert.match(editor, /dragOffset = \{ x: atom\.x - point\.x, y: atom\.y - point\.y \}/);
+  assert.match(editor, /canvas\.addEventListener\("pointercancel"/);
+  assert.match(editor, /canvas\.addEventListener\("lostpointercapture"/);
 });
 
 test("structure notation supports temporary disconnected editor atoms", () => {
