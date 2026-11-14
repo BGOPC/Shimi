@@ -81,6 +81,25 @@ const shuffle = values => {
 };
 const bondKey = (a, b) => a < b ? `${a}:${b}` : `${b}:${a}`;
 
+function clippedBondLines(a, b, order, radiusA, radiusB) {
+  const dx = b.x - a.x, dy = b.y - a.y;
+  const length = Math.max(1, Math.hypot(dx, dy));
+  const ux = dx / length, uy = dy / length;
+  const px = -uy, py = ux;
+  return Array.from({ length: order }, (_, index) => {
+    const offset = (index - (order - 1) / 2) * 6;
+    const sideA = Math.max(-Math.max(0, radiusA - 1), Math.min(Math.max(0, radiusA - 1), offset));
+    const sideB = Math.max(-Math.max(0, radiusB - 1), Math.min(Math.max(0, radiusB - 1), offset));
+    const alongA = Math.sqrt(Math.max(0, radiusA * radiusA - sideA * sideA));
+    const alongB = Math.sqrt(Math.max(0, radiusB * radiusB - sideB * sideB));
+    const x1 = a.x + ux * alongA + px * sideA;
+    const y1 = a.y + uy * alongA + py * sideA;
+    const x2 = b.x - ux * alongB + px * sideB;
+    const y2 = b.y - uy * alongB + py * sideB;
+    return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" />`;
+  }).join("");
+}
+
 export function parseStructure(text) {
   const source = String(text || "").trim().replace(/[−–—]/g, "-").replace(/\s+/g, "");
   if (!source) return null;
@@ -159,27 +178,25 @@ function layoutGraph(graph) {
   const adjacency = atoms.map(() => []);
   bonds.forEach(b => { adjacency[b.a].push(b.b); adjacency[b.b].push(b.a); });
   if (atoms.length > 2 && bonds.length === atoms.length && adjacency.every(list => list.length === 2) && atoms.every(atom => !Number.isFinite(atom.x) || !Number.isFinite(atom.y))) {
-    const radius = Math.max(45, Math.min(92, atoms.length * 13));
+    const radius = Math.max(62, Math.min(112, atoms.length * 14));
     atoms.forEach((atom, index) => {
       const angle = -Math.PI / 2 + index * Math.PI * 2 / atoms.length;
-      atom.x = 360 + Math.cos(angle) * radius;
-      atom.y = 122 + Math.sin(angle) * radius;
+      atom.x = 390 + Math.cos(angle) * radius;
+      atom.y = 132 + Math.sin(angle) * radius;
     });
     return { atoms, bonds };
   }
   const assigned = new Set();
-  const roots = [];
   for (let i = 0; i < atoms.length; i++) {
     if (assigned.has(i)) continue;
-    roots.push(i);
     const queue = [{ id: i, parent: -1, depth: 0, lane: 0 }];
     assigned.add(i);
     while (queue.length) {
       const current = queue.shift();
       const node = atoms[current.id];
       if (!Number.isFinite(node.x) || !Number.isFinite(node.y)) {
-        node.x = 54 + current.depth * 74;
-        node.y = 96 + current.lane * 55;
+        node.x = 54 + current.depth * 82;
+        node.y = 128 + (current.depth % 2 === 0 ? -27 : 27) + current.lane * 50;
       }
       const children = adjacency[current.id].filter(id => id !== current.parent && !assigned.has(id));
       children.forEach((child, k) => {
@@ -191,8 +208,7 @@ function layoutGraph(graph) {
   }
   return { atoms, bonds };
 }
-
-function implicitHydrogens(atom, graph) {
+(atom, graph) {
   const valence = { C: 4, O: 2, N: 3, S: 2, F: 1, Cl: 1, Br: 1 }[atom.element];
   if (!valence) return 0;
   const used = graph.bonds.filter(b => b.a === atom.id || b.b === atom.id).reduce((sum, b) => sum + b.order, 0);
@@ -203,34 +219,31 @@ export function renderMoleculeSvg(input, mode = "structural", className = "molec
   const graph = typeof input === "string" ? parseStructure(input) : input;
   if (!graph || !graph.atoms.length) return "<div class=\"chem-empty\">ساختار قابل نمایش نیست</div>";
   const positioned = layoutGraph(graph);
-  const xs = positioned.atoms.map(a => a.x);
-  const ys = positioned.atoms.map(a => a.y);
-  const minX = Math.min(...xs) - 34, maxX = Math.max(...xs) + 34;
-  const minY = Math.min(...ys) - 36, maxY = Math.max(...ys) + 36;
-  const width = Math.max(150, maxX - minX), height = Math.max(110, maxY - minY);
-  const bondMarkup = positioned.bonds.map(b => {
-    const a = positioned.atoms[b.a], c = positioned.atoms[b.b];
-    const dx = c.x - a.x, dy = c.y - a.y;
-    const length = Math.max(1, Math.hypot(dx, dy));
-    const ox = -dy / length * 4, oy = dx / length * 4;
-    const lines = [];
-    for (let k = 0; k < b.order; k++) {
-      const offset = (k - (b.order - 1) / 2) * 7;
-      lines.push(`<line x1="${a.x + ox * offset / 4}" y1="${a.y + oy * offset / 4}" x2="${c.x + ox * offset / 4}" y2="${c.y + oy * offset / 4}" />`);
-    }
-    return lines.join("");
-  }).join("");
-  const atomMarkup = positioned.atoms.map(atom => {
+  const display = positioned.atoms.map(atom => {
     const showCarbon = mode !== "skeletal" || atom.element !== "C" || graph.atoms.length === 1;
     const hydrogenCount = mode === "explicit" ? implicitHydrogens(atom, graph) : 0;
     const label = atom.element + (hydrogenCount ? `H${toSub(hydrogenCount)}` : "");
-    if (!showCarbon) return "";
-    return `<text class="molecule-atom atom-${atom.element.toLowerCase()}" x="${atom.x}" y="${atom.y + 6}" text-anchor="middle">${escapeHtml(label)}</text>`;
+    const radius = !showCarbon ? 4 : Math.max(20, Math.min(30, 12 + label.length * 6));
+    return { atom, showCarbon, label, radius };
+  });
+  const radiusById = new Map(display.map(item => [item.atom.id, item.radius]));
+  const xs = positioned.atoms.map(a => a.x);
+  const ys = positioned.atoms.map(a => a.y);
+  const maxRadius = Math.max(...display.map(item => item.radius));
+  const minX = Math.min(...xs) - maxRadius - 10, maxX = Math.max(...xs) + maxRadius + 10;
+  const minY = Math.min(...ys) - maxRadius - 10, maxY = Math.max(...ys) + maxRadius + 10;
+  const width = Math.max(150, maxX - minX), height = Math.max(110, maxY - minY);
+  const bondMarkup = positioned.bonds.map(bond => {
+    const a = positioned.atoms[bond.a], b = positioned.atoms[bond.b];
+    return clippedBondLines(a, b, bond.order, radiusById.get(a.id), radiusById.get(b.id));
+  }).join("");
+  const atomMarkup = display.map(({ atom, showCarbon, label, radius }) => {
+    if (!showCarbon) return `<circle class="molecule-vertex" cx="${atom.x}" cy="${atom.y}" r="4.2" />`;
+    return `<g class="molecule-atom atom-${atom.element.toLowerCase()}"><circle class="atom-node" cx="${atom.x}" cy="${atom.y}" r="${radius}" /><text x="${atom.x}" y="${atom.y + 5}" text-anchor="middle">${escapeHtml(label)}</text></g>`;
   }).join("");
   return `<svg class="${className}" viewBox="${minX} ${minY} ${width} ${height}" role="img" aria-label="ساختار مولکولی"><g class="molecule-bonds">${bondMarkup}</g><g class="molecule-atoms">${atomMarkup}</g></svg>`;
 }
-
-function graphWithoutHydrogen(graph) {
+(graph) {
   const kept = graph.atoms.filter(a => a.element !== "H");
   const ids = new Map(kept.map((a, i) => [a.id, i]));
   return {
@@ -452,7 +465,9 @@ function alkylNameFromGraph(graph) {
       const substituent = ALKYL_SUBSTITUENTS[size].name;
       return persianNumber(locants.join("،")) + "-" + (prefix ? prefix + "‌" : "") + substituent;
     });
-  return parts.length ? parts.join("-") + "-" + ALKANE_ROOTS[longest] : ALKANE_ROOTS[longest];
+  if (!parts.length) return ALKANE_ROOTS[longest];
+  const last = parts.pop();
+  return [...parts, last + "‌" + ALKANE_ROOTS[longest]].join("-");
 }
 
 function makeAlkylNamingMolecule(parentLength, branches) {
@@ -765,17 +780,13 @@ export function mountStructureEditor(container) {
       return;
     }
     const positioned = layoutGraph(graph);
+    const atomRadius = 17;
     const bonds = positioned.bonds.map(b => {
       const a = positioned.atoms[b.a], c = positioned.atoms[b.b];
       if (!a || !c) return "";
-      const dx = c.x - a.x, dy = c.y - a.y, length = Math.max(1, Math.hypot(dx, dy));
-      const ox = -dy / length * 4, oy = dx / length * 4;
-      return Array.from({ length: b.order }, (_, k) => {
-        const offset = (k - (b.order - 1) / 2) * 7;
-        return `<line x1="${a.x + ox * offset / 4}" y1="${a.y + oy * offset / 4}" x2="${c.x + ox * offset / 4}" y2="${c.y + oy * offset / 4}" />`;
-      }).join("");
+      return clippedBondLines(a, c, b.order, atomRadius, atomRadius);
     }).join("");
-    const atoms = positioned.atoms.map(atom => `<g class="chem-editor-atom ${selected.includes(atom.id) ? "is-selected" : ""}" data-atom-id="${atom.id}" tabindex="0" role="button" aria-label="اتم ${atom.element}"><circle cx="${atom.x}" cy="${atom.y}" r="17"></circle><text x="${atom.x}" y="${atom.y + 5}" text-anchor="middle">${escapeHtml(atom.element)}</text></g>`).join("");
+    const atoms = positioned.atoms.map(atom => `<g class="chem-editor-atom ${selected.includes(atom.id) ? "is-selected" : ""}" data-atom-id="${atom.id}" tabindex="0" role="button" aria-label="اتم ${atom.element}"><circle cx="${atom.x}" cy="${atom.y}" r="${atomRadius}"></circle><text x="${atom.x}" y="${atom.y + 5}" text-anchor="middle">${escapeHtml(atom.element)}</text></g>`).join("");
     canvas.innerHTML = `<g class="chem-editor-bonds">${bonds}</g><g class="chem-editor-atoms">${atoms}</g>`;
   };
   const syncText = () => {
