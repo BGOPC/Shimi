@@ -45,6 +45,16 @@ test("SMILES-like parser handles chains, branches, multiple bonds and rings", ()
   assert.equal(parseStructure("[CH3]"), null);
 });
 
+test("interactive editor redraw does not call the removed question-layout helper", () => {
+  const source = readFileSync(new URL("../src/chemistry.js", import.meta.url), "utf8");
+  const editor = source.slice(source.indexOf("export function mountStructureEditor"));
+  assert.match(editor, /layoutEditorGraph\\(graph\\)/);
+  assert.doesNotMatch(editor, /layoutGraph\\(graph\\)/);
+  const selection = editor.slice(editor.indexOf("const selectAtom"), editor.indexOf('canvas.addEventListener("keydown"'));
+  assert.doesNotMatch(selection, /render\\(\\)/);
+  assert.match(selection, /aria-pressed/);
+});
+
 test("interactive editor layout preserves placed atoms and lays out text-entered molecules", () => {
   const drawn = {
     atoms: [
