@@ -1,11 +1,13 @@
 .chemistry-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 16px;
   margin-top: 18px;
 }
 .chemistry-card {
+  display: flex;
   min-width: 0;
+  flex-direction: column;
   padding: 20px;
   background: var(--card);
   border: 1px solid var(--bd);
@@ -15,7 +17,7 @@
 .chemistry-card h2 { margin: 0 0 5px; }
 .chemistry-card .hint { margin-bottom: 13px; }
 .chemistry-card .sub { margin: 13px 0 7px; }
-.chemistry-card .btn { width: 100%; margin-top: 8px; }
+.chemistry-card .btn { width: 100%; margin-top: auto; padding-top: 12px; padding-bottom: 12px; }
 .chemistry-card .chips { gap: 8px; margin-bottom: 10px; }
 .chemistry-card .chip span { padding: 8px 12px; font-size: .92rem; }
 .chemistry-card .chem-setting-note { color: var(--mut); font-size: .84rem; margin: 4px 0 10px; }
@@ -38,8 +40,8 @@
 .molecule-answer,
 .aromatic-choice-svg {
   display: block;
-  width: min(100%, 560px);
-  max-height: 230px;
+  width: min(100%, 760px);
+  max-height: 300px;
   margin: 12px auto 16px;
   overflow: visible;
   color: var(--tx);
@@ -51,16 +53,33 @@
   stroke-width: 2.2;
   stroke-linecap: round;
 }
+.molecule-question .molecule-atoms .atom-node,
+.molecule-answer .molecule-atoms .atom-node,
+.aromatic-choice-svg .molecule-atoms .atom-node {
+  fill: var(--card);
+  stroke: var(--acc-fg);
+  stroke-width: 2;
+}
+.molecule-question .molecule-atoms .atom-o .atom-node,
+.molecule-answer .molecule-atoms .atom-o .atom-node,
+.aromatic-choice-svg .molecule-atoms .atom-o .atom-node { stroke: var(--acc2); }
+.molecule-question .molecule-atoms .atom-n .atom-node,
+.molecule-answer .molecule-atoms .atom-n .atom-node,
+.aromatic-choice-svg .molecule-atoms .atom-n .atom-node { stroke: var(--hot); }
 .molecule-question .molecule-atoms text,
 .molecule-answer .molecule-atoms text,
 .aromatic-choice-svg .molecule-atoms text {
-  fill: currentColor;
-  font: 700 18px "Cambria Math", "Times New Roman", serif;
+  fill: var(--tx);
+  font: 750 14px "Cambria Math", "Times New Roman", serif;
+  pointer-events: none;
 }
-.molecule-question .atom-o,
-.molecule-answer .atom-o { fill: var(--acc-fg); }
-.molecule-question .atom-n,
-.molecule-answer .atom-n { fill: var(--acc2); }
+.molecule-question .molecule-vertex,
+.molecule-answer .molecule-vertex,
+.aromatic-choice-svg .molecule-vertex {
+  fill: currentColor;
+  stroke: var(--card);
+  stroke-width: .7;
+}
 .chem-answer-name { margin-top: 6px; text-align: center; font-weight: 800; }
 .chem-empty { color: var(--mut); text-align: center; }
 .chem-editor {
@@ -146,7 +165,10 @@
 .fld.chem-choice-field .fb,
 .fld.chem-structure-field .fb { margin-top: 7px; }
 
-@media (max-width: 800px) {
+@media (max-width: 1080px) {
+  .chemistry-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+}
+@media (max-width: 760px) {
   .chemistry-grid { grid-template-columns: minmax(0, 1fr); gap: 12px; }
   .chem-mixed-card { grid-column: auto; }
 }
