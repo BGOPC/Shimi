@@ -243,7 +243,7 @@ export function renderMoleculeSvg(input, mode = "structural", className = "molec
   }).join("");
   return `<svg class="${className}" viewBox="${minX} ${minY} ${width} ${height}" role="img" aria-label="ساختار مولکولی"><g class="molecule-bonds">${bondMarkup}</g><g class="molecule-atoms">${atomMarkup}</g></svg>`;
 }
-(graph) {
+function graphWithoutHydrogen(graph) {
   const kept = graph.atoms.filter(a => a.element !== "H");
   const ids = new Map(kept.map((a, i) => [a.id, i]));
   return {
