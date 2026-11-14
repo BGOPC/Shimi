@@ -298,6 +298,119 @@ function layoutMoleculeGraph(graph, mode) {
   return { atoms, bonds };
 }
 
+export function layoutEditorGraph(graph) {
+  const atoms = graph.atoms.map(atom => ({ ...atom }));
+  const bonds = graph.bonds.map(bond => ({ ...bond }));
+  if (!atoms.length) return { atoms, bonds };
+  if (atoms.every(atom => Number.isFinite(atom.x) && Number.isFinite(atom.y))) return { atoms, bonds };
+
+  const adjacency = atomNeighbours({ atoms, bonds });
+  const tree = atoms.map(() => []);
+  const visited = new Set();
+  let offsetX = 42;
+
+  const farthestInTree = start => {
+    const parent = new Map([[start, -1]]);
+    const distance = new Map([[start, 0]]);
+    const queue = [start];
+    for (let index = 0; index < queue.length; index++) {
+      const current = queue[index];
+      tree[current].forEach(next => {
+        if (distance.has(next)) return;
+        parent.set(next, current);
+        distance.set(next, distance.get(current) + 1);
+        queue.push(next);
+      });
+    }
+    let farthest = start;
+    distance.forEach((value, id) => {
+      if (value > distance.get(farthest)) farthest = id;
+    });
+    return { farthest, parent, distance };
+  };
+
+  for (let root = 0; root < atoms.length; root++) {
+    if (visited.has(root)) continue;
+    const component = [];
+    const queue = [root];
+    visited.add(root);
+    for (let index = 0; index < queue.length; index++) {
+      const current = queue[index];
+      component.push(current);
+      adjacency[current].forEach(edge => {
+        if (visited.has(edge.id)) return;
+        visited.add(edge.id);
+        tree[current].push(edge.id);
+        tree[edge.id].push(current);
+        queue.push(edge.id);
+      });
+    }
+
+    const componentSet = new Set(component);
+    const componentBonds = bonds.filter(bond => componentSet.has(bond.a) && componentSet.has(bond.b)).length;
+    const isSimpleRing = component.length > 2 &&
+      componentBonds === component.length &&
+      component.every(id => adjacency[id].filter(edge => componentSet.has(edge.id)).length === 2);
+
+    if (isSimpleRing) {
+      const radius = Math.max(42, Math.min(78, component.length * 10));
+      const centerX = offsetX + radius;
+      const centerY = 122;
+      component.forEach((id, index) => {
+        const angle = -Math.PI / 2 + index * Math.PI * 2 / component.length;
+        atoms[id].x = centerX + Math.cos(angle) * radius;
+        atoms[id].y = centerY + Math.sin(angle) * radius;
+      });
+      offsetX += radius * 2 + 64;
+      continue;
+    }
+
+    const first = farthestInTree(root);
+    const second = farthestInTree(first.farthest);
+    const path = [];
+    let current = second.farthest;
+    while (current !== -1) {
+      path.push(current);
+      current = second.parent.get(current) ?? -1;
+    }
+    path.reverse();
+
+    const pathSet = new Set(path);
+    const stepX = 52;
+    const baseY = 122;
+    path.forEach((id, index) => {
+      atoms[id].x = offsetX + index * stepX;
+      atoms[id].y = baseY;
+    });
+
+    const placed = new Set(path);
+    const placeBranch = (id, parentId, x, y, direction) => {
+      if (placed.has(id)) return;
+      placed.add(id);
+      atoms[id].x = x;
+      atoms[id].y = y;
+      const children = tree[id].filter(next => next !== parentId && !placed.has(next));
+      children.forEach((child, index) => {
+        const spread = (index - (children.length - 1) / 2) * 36;
+        placeBranch(child, id, x + spread, y + direction * 46, direction);
+      });
+    };
+
+    path.forEach((id, index) => {
+      const branches = tree[id].filter(next => !pathSet.has(next));
+      const direction = index % 2 === 0 ? -1 : 1;
+      branches.forEach((child, branchIndex) => {
+        const spread = (branchIndex - (branches.length - 1) / 2) * 32;
+        placeBranch(child, id, atoms[id].x + spread, atoms[id].y + direction * 46, direction);
+      });
+    });
+
+    offsetX += Math.max(path.length * stepX, 112) + 64;
+  }
+
+  return { atoms, bonds };
+}
+
 function implicitHydrogens(atom, graph) {
   const valence = { C: 4, O: 2, N: 3, S: 2, F: 1, Cl: 1, Br: 1 }[atom.element];
   if (!valence) return 0;
@@ -918,7 +1031,6 @@ export function mountStructureEditor(container) {
   let source = "";
   let parseError = "";
   let dragging = null;
-  let suppressCanvasClick = false;
   const atomById = id => graph.atoms.find(a => a.id === id);
   const tell = message => { status.textContent = message; };
   const serialize = () => {
@@ -971,14 +1083,14 @@ export function mountStructureEditor(container) {
       canvas.innerHTML = `<text x="360" y="120" text-anchor="middle" class="chem-editor-empty">برای افزودن اتم، روی صفحه بزن</text>`;
       return;
     }
-    const positioned = layoutGraph(graph);
+    const positioned = layoutEditorGraph(graph);
     const atomRadius = 17;
     const bonds = positioned.bonds.map(b => {
       const a = positioned.atoms[b.a], c = positioned.atoms[b.b];
       if (!a || !c) return "";
       return clippedBondLines(a, c, b.order, atomRadius, atomRadius);
     }).join("");
-    const atoms = positioned.atoms.map(atom => `<g class="chem-editor-atom ${selected.includes(atom.id) ? "is-selected" : ""}" data-atom-id="${atom.id}" tabindex="0" role="button" aria-label="اتم ${atom.element}"><circle cx="${atom.x}" cy="${atom.y}" r="${atomRadius}"></circle><text x="${atom.x}" y="${atom.y + 5}" text-anchor="middle">${escapeHtml(atom.element)}</text></g>`).join("");
+    const atoms = positioned.atoms.map(atom => `<g class="chem-editor-atom ${selected.includes(atom.id) ? "is-selected" : ""}" data-atom-id="${atom.id}" aria-pressed="${selected.includes(atom.id)}" tabindex="0" role="button" aria-label="اتم ${atom.element}"><circle cx="${atom.x}" cy="${atom.y}" r="${atomRadius}"></circle><text x="${atom.x}" y="${atom.y + 5}" text-anchor="middle">${escapeHtml(atom.element)}</text></g>`).join("");
     canvas.innerHTML = `<g class="chem-editor-bonds">${bonds}</g><g class="chem-editor-atoms">${atoms}</g>`;
   };
   const syncText = () => {
@@ -1033,7 +1145,6 @@ export function mountStructureEditor(container) {
     graph = { atoms: [], bonds: [] }; selected = []; source = ""; text.value = ""; parseError = ""; render(); tell("صفحه پاک شد.");
   });
   canvas.addEventListener("click", event => {
-    if (suppressCanvasClick) { suppressCanvasClick = false; return; }
     if (event.target.closest("[data-atom-id]")) return;
     if (activeMode !== "add") {
       if (selected.length) { selected = []; render(); }
@@ -1054,7 +1165,11 @@ export function mountStructureEditor(container) {
     if (selected.includes(id)) selected = selected.filter(x => x !== id);
     else if (selected.length < 2) selected.push(id);
     else selected = [id];
-    render();
+    canvas.querySelectorAll("[data-atom-id]").forEach(node => {
+      const active = selected.includes(Number(node.dataset.atomId));
+      node.classList.toggle("is-selected", active);
+      node.setAttribute("aria-pressed", String(active));
+    });
     if (selected.length === 2) tell("دو اتم موجود انتخاب شدند؛ نوع پیوند را برای اتصال یا تغییر پیوند بزن.");
     else tell(selected.length ? "اتم اول انتخاب شد؛ اتم دوم را انتخاب کن." : "انتخاب اتم لغو شد.");
   };
@@ -1070,7 +1185,6 @@ export function mountStructureEditor(container) {
     if (!node || event.button !== 0) return;
     if (activeMode === "select") {
       event.preventDefault();
-      suppressCanvasClick = true;
       selectAtom(Number(node.dataset.atomId));
       return;
     }
@@ -1090,7 +1204,7 @@ export function mountStructureEditor(container) {
     const parsed = parseStructure(text.value);
     if (!parsed) { parseError = "ساختار متنی قابل تشخیص نیست؛ از الگوی راهنما استفاده کن."; tell(parseError); return; }
     if (parsed.atoms.length > 18) { parseError = "حداکثر ۱۸ اتم مجاز است."; tell(parseError); return; }
-    graph = parsed; selected = []; parseError = ""; render(); tell("پیش‌نمایش ساختار به‌روز شد.");
+    graph = layoutEditorGraph(parsed); selected = []; parseError = ""; render(); tell("پیش‌نمایش ساختار به‌روز شد.");
   });
   return {
     getValue: () => ({ graph: source && !parseError ? graph : null, text: text.value, source, error: parseError }),
