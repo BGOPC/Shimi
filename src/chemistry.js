@@ -355,6 +355,144 @@ const groupStructure = group => {
   return parseStructure(shapes[group] || "C");
 };
 
+const ALKANE_ROOTS = ["", "متان", "اتان", "پروپان", "بوتان", "پنتان", "هگزان", "هپتان", "اوکتان", "نونان", "دکان"];
+const ALKYL_SUBSTITUENTS = {
+  1: { key: "methyl", name: "متیل" },
+  2: { key: "ethyl", name: "اتیل" }
+};
+const ALKYL_PREFIXES = ["", "", "دی", "تری", "تترا", "پنتا", "هگزا"];
+const persianNumber = value => String(value).replace(/\d/g, digit => "۰۱۲۳۴۵۶۷۸۹"[Number(digit)]);
+
+function compareNumberLists(first, second) {
+  const length = Math.min(first.length, second.length);
+  for (let i = 0; i < length; i++) {
+    if (first[i] !== second[i]) return first[i] - second[i];
+  }
+  return first.length - second.length;
+}
+
+function alkylNameFromGraph(graph) {
+  if (!graph || graph.atoms.some(atom => atom.element !== "C") || graph.bonds.length !== graph.atoms.length - 1) return null;
+  const adjacency = graph.atoms.map(() => []);
+  graph.bonds.forEach(bond => { adjacency[bond.a].push(bond.b); adjacency[bond.b].push(bond.a); });
+  const leaves = adjacency.map((neighbors, id) => neighbors.length <= 1 ? id : -1).filter(id => id >= 0);
+  let longest = 0;
+  let candidates = [];
+  for (let i = 0; i < leaves.length; i++) {
+    const start = leaves[i];
+    const parent = Array(graph.atoms.length).fill(-1);
+    const queue = [start];
+    parent[start] = start;
+    for (let cursor = 0; cursor < queue.length; cursor++) {
+      const current = queue[cursor];
+      for (const next of adjacency[current]) {
+        if (parent[next] !== -1) continue;
+        parent[next] = current;
+        queue.push(next);
+      }
+    }
+    for (let j = i + 1; j < leaves.length; j++) {
+      const end = leaves[j];
+      const path = [];
+      let node = end;
+      while (node !== start) { path.push(node); node = parent[node]; }
+      path.push(start);
+      path.reverse();
+      if (path.length < longest) continue;
+      const pathSet = new Set(path);
+      const branches = [];
+      path.forEach((atomId, index) => {
+        for (const neighbor of adjacency[atomId]) {
+          if (pathSet.has(neighbor)) continue;
+          const stack = [neighbor], seen = new Set([atomId]);
+          let size = 0;
+          while (stack.length) {
+            const current = stack.pop();
+            if (seen.has(current)) continue;
+            seen.add(current);
+            size++;
+            adjacency[current].forEach(next => { if (!seen.has(next)) stack.push(next); });
+          }
+          branches.push({ locant: index + 1, size });
+        }
+      });
+      const orient = reverse => {
+        const oriented = branches.map(item => ({
+          locant: reverse ? path.length - item.locant + 1 : item.locant,
+          size: item.size
+        }));
+        const locants = oriented.map(item => item.locant).sort((a, b) => a - b);
+        const alphaLocants = [...oriented]
+          .sort((a, b) => (ALKYL_SUBSTITUENTS[a.size]?.key || "").localeCompare(ALKYL_SUBSTITUENTS[b.size]?.key || ""))
+          .map(item => item.locant);
+        return { path, branches: oriented, locants, alphaLocants };
+      };
+      const forward = orient(false), reverse = orient(true);
+      const chosen = compareNumberLists(forward.locants, reverse.locants) <= 0 ? forward : reverse;
+      const candidate = { ...chosen, branchCount: branches.length };
+      if (path.length > longest) { longest = path.length; candidates = [candidate]; }
+      else if (candidate.branchCount > (candidates[0]?.branchCount ?? -1)) candidates = [candidate];
+      else if (candidate.branchCount === candidates[0]?.branchCount) candidates.push(candidate);
+    }
+  }
+  if (!longest || longest > 10 || !candidates.length || !candidates[0].branchCount) return null;
+  candidates.sort((a, b) => compareNumberLists(a.locants, b.locants) || compareNumberLists(a.alphaLocants, b.alphaLocants));
+  const selected = candidates[0];
+  const grouped = new Map();
+  selected.branches.forEach(item => {
+    if (!ALKYL_SUBSTITUENTS[item.size]) return;
+    if (!grouped.has(item.size)) grouped.set(item.size, []);
+    grouped.get(item.size).push(item.locant);
+  });
+  const parts = [...grouped.entries()]
+    .sort((a, b) => ALKYL_SUBSTITUENTS[a[0]].key.localeCompare(ALKYL_SUBSTITUENTS[b[0]].key))
+    .map(([size, locants]) => {
+      locants.sort((a, b) => a - b);
+      const prefix = ALKYL_PREFIXES[locants.length] || "";
+      const substituent = ALKYL_SUBSTITUENTS[size].name;
+      return persianNumber(locants.join("،")) + "-" + (prefix ? prefix + "‌" : "") + substituent;
+    });
+  return parts.length ? parts.join("-") + "-" + ALKANE_ROOTS[longest] : ALKANE_ROOTS[longest];
+}
+
+function makeAlkylNamingMolecule(parentLength, branches) {
+  const at = Array.from({ length: parentLength }, () => []);
+  branches.forEach(item => at[item.locant - 1].push(item.size));
+  const smiles = at.map(groups => "C" + groups.map(size => "(" + "C".repeat(size) + ")").join("")).join("");
+  const graph = parseStructure(smiles);
+  const name = alkylNameFromGraph(graph);
+  if (!name) return null;
+  return { smiles, name, type: "alkyl", carbonCount: graph.atoms.length };
+}
+
+function generatedAlkylNamingMolecules() {
+  const examples = [
+    makeAlkylNamingMolecule(10, [
+      { locant: 4, size: 2 }, { locant: 4, size: 2 }, { locant: 5, size: 2 },
+      { locant: 7, size: 1 }, { locant: 7, size: 1 }
+    ])
+  ];
+  for (let i = 0; i < 12; i++) {
+    const parentLength = 8 + rnd(3);
+    const positions = [];
+    for (let locant = 4; locant <= parentLength - 3; locant++) positions.push(locant, locant);
+    const branchCount = Math.min(3 + rnd(3), positions.length, 18 - parentLength);
+    const branches = [];
+    let extraCarbons = 0;
+    for (let count = 0; count < branchCount; count++) {
+      const slot = rnd(positions.length);
+      const locant = positions.splice(slot, 1)[0];
+      let size = 1 + rnd(2);
+      if (extraCarbons + size > 18 - parentLength) size = 1;
+      extraCarbons += size;
+      branches.push({ locant, size });
+    }
+    const molecule = makeAlkylNamingMolecule(parentLength, branches);
+    if (molecule) examples.push(molecule);
+  }
+  return examples.filter(Boolean);
+}
+
 function buildHydrocarbonBag(cfg = {}) {
   const questions = [];
   const types = cfg.types || {};
@@ -362,6 +500,17 @@ function buildHydrocarbonBag(cfg = {}) {
   const includeSingle = !!cfg.chains?.single;
   const includeMultiple = !!cfg.chains?.multiple;
   const includeCyclic = !!cfg.cyclic;
+  if (cfg.alkylOnly) {
+    if (types.structureToName) {
+      generatedAlkylNamingMolecules().forEach(molecule => {
+        const graph = parseStructure(molecule.smiles);
+        (styles.length ? styles : ["structural"]).forEach(style => {
+          questions.push({ k: "chem", kind: "hydroName", molecule, graph, style });
+        });
+      });
+    }
+    return questions;
+  }
   HYDROCARBONS.forEach(entry => {
     if (entry.type === "single" && !includeSingle) return;
     if (entry.type === "multiple" && !includeMultiple) return;
@@ -399,10 +548,15 @@ function buildIntegratedBag(config = {}) {
   const showHydro = !!hydroTypes.structureToName;
   const styles = ["skeletal", "structural", "explicit"].filter(style => hydro.models?.[style]);
   if (showHydro && styles.length) {
-    HYDROCARBONS.forEach(entry => {
-      if (entry.type === "single" && !hydroChains.single) return;
-      if (entry.type === "multiple" && !hydroChains.multiple) return;
-      if ((entry.type === "cyclic" || entry.type === "aromatic") && !hydro.cyclic) return;
+    const hydroEntries = hydro.alkylOnly
+      ? generatedAlkylNamingMolecules()
+      : HYDROCARBONS.filter(entry => {
+        if (entry.type === "single" && !hydroChains.single) return false;
+        if (entry.type === "multiple" && !hydroChains.multiple) return false;
+        if ((entry.type === "cyclic" || entry.type === "aromatic") && !hydro.cyclic) return false;
+        return true;
+      });
+    hydroEntries.forEach(entry => {
       const molecule = { ...entry, groups: [] };
       styles.forEach(style => compounds.push({ molecule, style }));
     });
@@ -422,6 +576,7 @@ function buildIntegratedBag(config = {}) {
 export function buildChemistryBag(mode, config = {}) {
   if (mode === "hydrocarbon") return buildHydrocarbonBag(config);
   if (mode === "functional") return buildFunctionalBag(config);
+  if (mode === "hydroExam") return buildHydrocarbonBag(config);
   if (mode === "chemMixed") {
     const result = [];
     if (config.hydro) result.push(...buildHydrocarbonBag(config.hydro));
