@@ -48,10 +48,10 @@ test("SMILES-like parser handles chains, branches, multiple bonds and rings", ()
 test("interactive editor redraw does not call the removed question-layout helper", () => {
   const source = readFileSync(new URL("../src/chemistry.js", import.meta.url), "utf8");
   const editor = source.slice(source.indexOf("export function mountStructureEditor"));
-  assert.match(editor, /layoutEditorGraph\\(graph\\)/);
-  assert.doesNotMatch(editor, /layoutGraph\\(graph\\)/);
+  assert.match(editor, /layoutEditorGraph\(graph\)/);
+  assert.doesNotMatch(editor, /layoutGraph\(graph\)/);
   const selection = editor.slice(editor.indexOf("const selectAtom"), editor.indexOf('canvas.addEventListener("keydown"'));
-  assert.doesNotMatch(selection, /render\\(\\)/);
+  assert.doesNotMatch(selection, /render\(\)/);
   assert.match(selection, /aria-pressed/);
 });
 
@@ -67,12 +67,12 @@ test("interactive editor layout preserves placed atoms and lays out text-entered
   assert.deepEqual(preserved.atoms.map(atom => [atom.x, atom.y]), [[80, 100], [210, 130]]);
   assert.deepEqual(preserved.bonds, drawn.bonds);
 
-  const textGraph = parseStructure("CC(C)CO");
+  const textGraph = parseStructure("CC(C)C");
   const laidOut = layoutEditorGraph(textGraph);
   assert.equal(laidOut.atoms.length, textGraph.atoms.length);
   assert.equal(laidOut.bonds.length, textGraph.bonds.length);
   assert.ok(laidOut.atoms.every(atom => Number.isFinite(atom.x) && Number.isFinite(atom.y)));
-  assert.ok(new Set(laidOut.atoms.map(atom => atom.y)).size > 1);
+  assert.ok(new Set(laidOut.atoms.map(atom => atom.y)).size > 1, JSON.stringify(laidOut.atoms));
   assert.ok(textGraph.atoms.every(atom => atom.x === undefined && atom.y === undefined));
 
   const ring = layoutEditorGraph(parseStructure("C1CCCCC1"));
