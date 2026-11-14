@@ -168,7 +168,9 @@
         </div>
         <div class="chips" id="hydroExtra">
           <label class="chip"><input data-chem-setting id="hydroCyclic" type="checkbox" value="cyclic" checked><span>ترکیبات حلقوی</span></label>
+          <label class="chip"><input data-chem-setting id="hydroAlkylOnly" type="checkbox" value="alkylOnly"><span>فقط آلکان‌ها و آلکیل‌ها (زنجیر اصلی و شاخه‌ها)</span></label>
         </div>
+        <p class="chem-setting-note">با فعال‌کردن این حالت، فقط ساختار آلکان‌های شاخه‌دار نمایش داده می‌شود و باید زنجیر اصلی و شمارهٔ شاخه‌ها را نام‌گذاری کنی.</p>
         <button class="btn primary" id="startHydrocarbon" type="button">شروع نام‌گذاری هیدروکربن‌ها</button>
       </section>
 
@@ -185,6 +187,13 @@
         </div>
         <p class="chem-setting-note">در تشخیص ترکیب، گروه‌های جامع‌تر مثل کربوکسیل، استر و آمید بر هم‌پوشانی‌های ساده‌تر اولویت دارند.</p>
         <button class="btn primary" id="startFunctional" type="button">شروع آزمون گروه‌های عاملی</button>
+      </section>
+
+      <section class="chemistry-card chem-hydro-exam-card">
+        <h2>آزمون جامع هیدروکربن‌ها</h2>
+        <p class="hint">ترکیب سؤال‌های رسم ساختار و نام‌گذاری در یک آزمون</p>
+        <p class="chem-setting-note">از گزینه‌های بخش نام‌گذاری هیدروکربن‌ها استفاده می‌کند؛ با فعال‌بودن آلکان و آلکیل، آزمون روی نام‌گذاری ساختارهای شاخه‌دار متمرکز می‌شود.</p>
+        <button class="btn primary" id="startHydrocarbonExam" type="button">شروع آزمون جامع هیدروکربن‌ها</button>
       </section>
 
       <section class="chemistry-card chem-mixed-card">
