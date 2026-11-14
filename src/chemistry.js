@@ -128,6 +128,13 @@ export function parseStructure(text) {
       index++;
       continue;
     }
+    if (char === ".") {
+      if (current < 0 || bondPending || branch.length) return null;
+      current = -1;
+      pendingBond = 1;
+      index++;
+      continue;
+    }
     if (char === "(") { if (current < 0 || bondPending) return null; branch.push(current); index++; continue; }
     if (char === ")") { if (!branch.length || bondPending) return null; current = branch.pop(); index++; continue; }
     if (/[0-9]/.test(char)) {
@@ -716,7 +723,7 @@ export function structureEditorMarkup() {
     </div>
     <label class="chem-editor-text-label" for="chem-structure-text">یا ساختار را متنی بنویس</label>
     <textarea id="chem-structure-text" class="chem-structure-text" rows="2" dir="ltr" spellcheck="false" autocapitalize="off" placeholder="مثلاً C-C(=O)-O یا C1=CC=CC=C1"></textarea>
-    <div class="chem-editor-help">راهنمای نوشتن: از C برای کربن، O برای اکسیژن، N برای نیتروژن، H برای هیدروژن و R برای ادامهٔ زنجیر استفاده کن. پیوند یگانه با -، دوگانه با = و سه‌گانه با # نوشته می‌شود. برای شاخه از پرانتز و برای حلقه از شماره استفاده کن؛ مثلاً C-C-C، C-C(=O)-O، C-C-O یا C1=CC=CC=C1. بین رسم‌کردن و نوشتن متنی فقط یکی کافی است.</div>
+    <div class="chem-editor-help">راهنمای رسم: ابتدا نوع اتم را انتخاب کن و اتم‌ها را در صفحه بگذار. سپس ابزار ✋ انتخاب را فعال کن، روی دو اتم موجود بزن و نوع پیوند را انتخاب کن. برای نوشتن متنی از C، O، N، H و R استفاده کن؛ پیوند یگانه با -، دوگانه با = و سه‌گانه با # است. برای شاخه از پرانتز و برای حلقه از شماره استفاده کن؛ مثلاً C-C-C، C-C(=O)-O یا C1=CC=CC=C1. بین رسم و نوشتن متن فقط یکی کافی است.</div>
     <small class="chem-editor-status" aria-live="polite">ابتدا اتم‌ها را اضافه کن یا ساختار را در کادر بنویس.</small>
   </div>`;
 }
@@ -754,7 +761,13 @@ export function mountStructureEditor(container) {
         else if (!treeEdges.has(key) && !ringEdges.some(r => r.key === key)) ringEdges.push({ key, a: id, b: edge.id, order: edge.order });
       }
     };
-    walk(0, -1);
+    const roots = [];
+    for (let id = 0; id < nodes.length; id++) {
+      if (!visited.has(id)) {
+        roots.push(id);
+        walk(id, -1);
+      }
+    }
     let ringNumber = 1;
     const rings = nodes.map(() => []);
     ringEdges.forEach(r => {
@@ -774,7 +787,7 @@ export function mountStructureEditor(container) {
       });
       return result;
     };
-    return build(0, -1);
+    return roots.map(root => build(root, -1)).join(".");
   };
   const render = () => {
     if (!graph.atoms.length) {
