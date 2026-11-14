@@ -94,19 +94,83 @@
 .chem-editor-tools button.chem-select-tool.is-active { box-shadow: 0 0 0 2px rgba(198,160,246,.25); }
 .chem-edit-tools { margin-inline-start: auto; }
 .chem-edit-tools button { font-size: .78rem; font-weight: 600; }
+.chem-fragment-tools {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 10px;
+  margin: 12px 0;
+}
+.chem-fragment-group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.chem-fragment-heading {
+  flex: 0 0 104px;
+  color: var(--mut);
+  font-size: .82rem;
+  font-weight: 800;
+}
+.chem-fragment-buttons {
+  display: flex;
+  flex: 1 1 0;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+.chem-fragment-buttons button {
+  display: inline-flex;
+  min-width: 76px;
+  min-height: 42px;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 1px;
+  padding: 5px 10px;
+  border: 1px solid var(--bd);
+  border-radius: 8px;
+  background: var(--card);
+  color: var(--tx);
+  font: inherit;
+  font-weight: 750;
+  cursor: pointer;
+  transition: border-color .12s ease, background .12s ease, transform .12s ease;
+}
+.chem-fragment-buttons button:hover {
+  border-color: var(--acc);
+  background: rgba(136,57,239,.12);
+}
+.chem-fragment-buttons button:active { transform: translateY(1px); }
+.chem-fragment-buttons button small {
+  color: var(--mut);
+  font-size: .68rem;
+  font-weight: 650;
+  direction: ltr;
+}
 .chem-editor-canvas-wrap {
   width: 100%;
-  overflow: hidden;
+  overflow: auto;
+  overscroll-behavior: contain;
   border: 1px dashed var(--bd);
   border-radius: 7px;
   background: rgba(0,0,0,.10);
 }
-.chem-editor-canvas { display: block; width: 100%; min-height: 170px; touch-action: none; cursor: crosshair; }
-.chem-editor-empty { fill: var(--mut); font: 500 15px sans-serif; }
+.chem-editor-canvas {
+  display: block;
+  width: 100%;
+  min-width: 720px;
+  height: clamp(360px, 42vw, 520px);
+  touch-action: pan-x;
+  cursor: crosshair;
+}
+.chem-editor-canvas.is-dragging { cursor: grabbing; }
+.chem-editor-empty { fill: var(--mut); font: 500 18px sans-serif; }
 .chem-editor-bonds line { stroke: var(--tx); stroke-width: 2.4; stroke-linecap: round; pointer-events: none; }
-.chem-editor-atom { cursor: grab; outline: none; }
-.chem-editor-atom circle { fill: var(--card); stroke: var(--acc-fg); stroke-width: 1.8; }
-.chem-editor-atom text { fill: var(--tx); font: 750 15px "Cambria Math", "Times New Roman", serif; pointer-events: none; }
+.chem-editor-atom { cursor: grab; outline: none; touch-action: none; }
+.chem-editor-atom:active { cursor: grabbing; }
+.chem-editor-atom .atom-hit-area { fill: transparent; stroke: transparent; stroke-width: 1; pointer-events: all; }
+.chem-editor-atom .atom-visible { fill: var(--card); stroke: var(--acc-fg); stroke-width: 1.8; }
+.chem-editor-atom text { fill: var(--tx); font: 750 16px "Cambria Math", "Times New Roman", serif; pointer-events: none; }
 .chem-editor-atom.is-selected circle { fill: var(--acc); stroke: var(--on-acc); stroke-width: 2.2; }
 .chem-editor-atom:focus-visible circle { stroke: var(--hot); stroke-width: 3; }
 .chem-editor-text-label { display: block; margin: 11px 0 5px; font-size: .9rem; font-weight: 750; }
@@ -159,6 +223,9 @@
   .chemistry-card { padding: 15px; }
   .chem-editor { padding: 9px; }
   .chem-editor-tools { gap: 6px; }
+  .chem-fragment-heading { flex-basis: 100%; }
+  .chem-fragment-buttons { flex: 1 1 100%; }
+  .chem-fragment-buttons button { min-width: 68px; flex: 1 1 68px; }
   .chem-edit-tools { width: 100%; margin-inline-start: 0; }
   .chem-edit-tools button { flex: 1; }
   .chem-multi-options,

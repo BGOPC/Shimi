@@ -1007,14 +1007,78 @@ export function structureEditorMarkup() {
         <button type="button" data-editor-action="clear">پاک‌کردن</button>
       </div>
     </div>
+    <div class="chem-fragment-tools" aria-label="میان‌بر افزودن زنجیره‌های کربنی">
+      <div class="chem-fragment-group">
+        <span class="chem-fragment-heading">گروه‌های آلکیل</span>
+        <div class="chem-fragment-buttons">
+          <button type="button" data-editor-fragment="1" data-fragment-label="متیل"><span>متیل</span><small>CH₃–</small></button>
+          <button type="button" data-editor-fragment="2" data-fragment-label="اتیل"><span>اتیل</span><small>C₂H₅–</small></button>
+          <button type="button" data-editor-fragment="3" data-fragment-label="پروپیل"><span>پروپیل</span><small>C₃H₇–</small></button>
+        </div>
+      </div>
+      <div class="chem-fragment-group">
+        <span class="chem-fragment-heading">آلکان‌ها</span>
+        <div class="chem-fragment-buttons chem-alkane-buttons">
+          <button type="button" data-editor-fragment="1" data-fragment-label="متان"><span>متان</span><small>CH₄</small></button>
+          <button type="button" data-editor-fragment="2" data-fragment-label="اتان"><span>اتان</span><small>C₂H₆</small></button>
+          <button type="button" data-editor-fragment="3" data-fragment-label="پروپان"><span>پروپان</span><small>C₃H₈</small></button>
+          <button type="button" data-editor-fragment="4" data-fragment-label="بوتان"><span>بوتان</span><small>C₄H₁₀</small></button>
+          <button type="button" data-editor-fragment="5" data-fragment-label="پنتان"><span>پنتان</span><small>C₅H₁₂</small></button>
+          <button type="button" data-editor-fragment="6" data-fragment-label="هگزان"><span>هگزان</span><small>C₆H₁₄</small></button>
+          <button type="button" data-editor-fragment="7" data-fragment-label="هپتان"><span>هپتان</span><small>C₇H₁₆</small></button>
+          <button type="button" data-editor-fragment="8" data-fragment-label="اوکتان"><span>اوکتان</span><small>C₈H₁₈</small></button>
+          <button type="button" data-editor-fragment="9" data-fragment-label="نونان"><span>نونان</span><small>C₉H₂₀</small></button>
+          <button type="button" data-editor-fragment="10" data-fragment-label="دکان"><span>دکان</span><small>C₁₀H₂₂</small></button>
+        </div>
+      </div>
+    </div>
     <div class="chem-editor-canvas-wrap">
-      <svg class="chem-editor-canvas" viewBox="0 0 720 245" role="img" aria-label="صفحهٔ رسم ساختار مولکولی"><text x="360" y="120" text-anchor="middle" class="chem-editor-empty">برای افزودن اتم، روی صفحه بزن</text></svg>
+      <svg class="chem-editor-canvas" viewBox="0 0 1200 600" role="img" aria-label="صفحهٔ بزرگ رسم ساختار مولکولی" preserveAspectRatio="xMidYMid meet"><text x="600" y="300" text-anchor="middle" class="chem-editor-empty">برای افزودن اتم، روی صفحه بزن</text></svg>
     </div>
     <label class="chem-editor-text-label" for="chem-structure-text">یا ساختار را متنی بنویس</label>
     <textarea id="chem-structure-text" class="chem-structure-text" rows="2" dir="ltr" spellcheck="false" autocapitalize="off" placeholder="مثلاً C-C(=O)-O یا C1=CC=CC=C1"></textarea>
     <div class="chem-editor-help">راهنمای رسم: ابتدا نوع اتم را انتخاب کن و اتم‌ها را در صفحه بگذار. سپس ابزار ✋ انتخاب را فعال کن، روی دو اتم موجود بزن و نوع پیوند را انتخاب کن. برای نوشتن متنی از C، O، N، H و R استفاده کن؛ پیوند یگانه با -، دوگانه با = و سه‌گانه با # است. برای شاخه از پرانتز و برای حلقه از شماره استفاده کن؛ مثلاً C-C-C، C-C(=O)-O یا C1=CC=CC=C1. بین رسم و نوشتن متن فقط یکی کافی است.</div>
     <small class="chem-editor-status" aria-live="polite">ابتدا اتم‌ها را اضافه کن یا ساختار را در کادر بنویس.</small>
   </div>`;
+}
+
+export function appendEditorCarbonFragment(graph, carbonCount, width = 1200, height = 600) {
+  const count = Number(carbonCount);
+  if (!Number.isInteger(count) || count < 1 || count > 10 || graph.atoms.length + count > 18) return null;
+  const positioned = layoutEditorGraph(graph);
+  const spacing = 58, margin = 40;
+  const maxStart = width - margin - (count - 1) * spacing;
+  if (maxStart < margin) return null;
+  const starts = [];
+  for (let x = margin; x <= maxStart; x += 28) starts.push(x);
+  starts.sort((a, b) => Math.abs(a + (count - 1) * spacing / 2 - width / 2) - Math.abs(b + (count - 1) * spacing / 2 - width / 2));
+  const rows = [];
+  for (let y = 48; y <= height - 48; y += 64) rows.push(y);
+  rows.sort((a, b) => Math.abs(a - height / 2) - Math.abs(b - height / 2));
+  let origin = null;
+  for (const y of rows) {
+    for (const x of starts) {
+      const clear = Array.from({ length: count }, (_, index) => ({ x: x + index * spacing, y }))
+        .every(point => positioned.atoms.every(atom => Math.hypot(atom.x - point.x, atom.y - point.y) >= 48));
+      if (clear) { origin = { x, y }; break; }
+    }
+    if (origin) break;
+  }
+  if (!origin) return null;
+  const nextId = positioned.atoms.reduce((max, atom) => Math.max(max, atom.id), -1) + 1;
+  const atoms = Array.from({ length: count }, (_, index) => ({
+    id: nextId + index,
+    element: "C",
+    aromatic: false,
+    x: origin.x + index * spacing,
+    y: origin.y
+  }));
+  const bonds = Array.from({ length: count - 1 }, (_, index) => ({
+    a: nextId + index,
+    b: nextId + index + 1,
+    order: 1
+  }));
+  return { atoms: [...positioned.atoms, ...atoms], bonds: [...positioned.bonds, ...bonds] };
 }
 
 export function mountStructureEditor(container) {
@@ -1080,7 +1144,7 @@ export function mountStructureEditor(container) {
   };
   const render = () => {
     if (!graph.atoms.length) {
-      canvas.innerHTML = `<text x="360" y="120" text-anchor="middle" class="chem-editor-empty">برای افزودن اتم، روی صفحه بزن</text>`;
+      canvas.innerHTML = `<text x="600" y="300" text-anchor="middle" class="chem-editor-empty">برای افزودن اتم، روی صفحه بزن</text>`;
       return;
     }
     const positioned = layoutEditorGraph(graph);
@@ -1090,7 +1154,7 @@ export function mountStructureEditor(container) {
       if (!a || !c) return "";
       return clippedBondLines(a, c, b.order, atomRadius, atomRadius);
     }).join("");
-    const atoms = positioned.atoms.map(atom => `<g class="chem-editor-atom ${selected.includes(atom.id) ? "is-selected" : ""}" data-atom-id="${atom.id}" aria-pressed="${selected.includes(atom.id)}" tabindex="0" role="button" aria-label="اتم ${atom.element}"><circle cx="${atom.x}" cy="${atom.y}" r="${atomRadius}"></circle><text x="${atom.x}" y="${atom.y + 5}" text-anchor="middle">${escapeHtml(atom.element)}</text></g>`).join("");
+    const atoms = positioned.atoms.map(atom => `<g class="chem-editor-atom ${selected.includes(atom.id) ? "is-selected" : ""}" data-atom-id="${atom.id}" aria-pressed="${selected.includes(atom.id)}" tabindex="0" role="button" aria-label="اتم ${atom.element}"><circle class="atom-hit-area" cx="${atom.x}" cy="${atom.y}" r="31"></circle><circle class="atom-visible" cx="${atom.x}" cy="${atom.y}" r="${atomRadius}"></circle><text x="${atom.x}" y="${atom.y + 5}" text-anchor="middle">${escapeHtml(atom.element)}</text></g>`).join("");
     canvas.innerHTML = `<g class="chem-editor-bonds">${bonds}</g><g class="chem-editor-atoms">${atoms}</g>`;
   };
   const syncText = () => {
@@ -1119,6 +1183,23 @@ export function mountStructureEditor(container) {
     activeMode = "add";
     updateSelectedTools();
     tell(`حالت افزودن فعال شد؛ برای افزودن اتم ${activeAtom} روی فضای خالی بزن.`);
+  }));
+  container.querySelectorAll("[data-editor-fragment]").forEach(button => button.addEventListener("click", () => {
+    const count = Number(button.dataset.editorFragment);
+    const next = appendEditorCarbonFragment(graph, count, 1200, 600);
+    if (!next) {
+      tell(graph.atoms.length + count > 18
+        ? "حداکثر ۱۸ اتم قابل رسم است؛ برای افزودن قطعهٔ جدید ابتدا چند اتم را حذف کن."
+        : "فضای خالی کافی برای این زنجیره پیدا نشد؛ چند اتم را جابه‌جا کن و دوباره امتحان کن.");
+      return;
+    }
+    graph = next;
+    selected = [];
+    activeMode = "add";
+    updateSelectedTools();
+    render();
+    syncText();
+    tell(`قطعهٔ ${button.dataset.fragmentLabel} اضافه شد؛ برای اتصال آن به بقیهٔ ساختار، دو اتم را با ابزار انتخاب انتخاب کن و پیوند را بزن.`);
   }));
   container.querySelectorAll("[data-bond]").forEach(button => button.addEventListener("click", () => {
     activeBond = Number(button.dataset.bond);
@@ -1155,8 +1236,8 @@ export function mountStructureEditor(container) {
     const point = canvas.createSVGPoint();
     point.x = event.clientX; point.y = event.clientY;
     const local = point.matrixTransform(canvas.getScreenCTM().inverse());
-    const id = graph.atoms.length;
-    graph.atoms.push({ id, element: activeAtom, aromatic: false, x: Math.max(24, Math.min(696, local.x)), y: Math.max(24, Math.min(221, local.y)) });
+    const id = graph.atoms.reduce((max, atom) => Math.max(max, atom.id), -1) + 1;
+    graph.atoms.push({ id, element: activeAtom, aromatic: false, x: Math.max(32, Math.min(1168, local.x)), y: Math.max(32, Math.min(568, local.y)) });
     selected = [];
     render(); syncText();
     tell(`اتم ${activeAtom} اضافه شد؛ برای اتصال اتم‌ها ابزار انتخاب را بزن.`);
@@ -1180,6 +1261,19 @@ export function mountStructureEditor(container) {
     event.preventDefault();
     selectAtom(Number(node.dataset.atomId));
   });
+  let dragOffset = { x: 0, y: 0 };
+  const canvasPoint = event => {
+    const point = canvas.createSVGPoint();
+    point.x = event.clientX;
+    point.y = event.clientY;
+    return point.matrixTransform(canvas.getScreenCTM().inverse());
+  };
+  const finishDrag = () => {
+    if (dragging === null) return;
+    dragging = null;
+    syncText();
+    tell("موقعیت اتم جابه‌جا شد.");
+  };
   canvas.addEventListener("pointerdown", event => {
     const node = event.target.closest("[data-atom-id]");
     if (!node || event.button !== 0) return;
@@ -1188,17 +1282,38 @@ export function mountStructureEditor(container) {
       selectAtom(Number(node.dataset.atomId));
       return;
     }
-    dragging = Number(node.dataset.atomId);
+    const atom = atomById(Number(node.dataset.atomId));
+    if (!atom) return;
+    event.preventDefault();
+    const point = canvasPoint(event);
+    dragging = atom.id;
+    dragOffset = { x: atom.x - point.x, y: atom.y - point.y };
     canvas.setPointerCapture(event.pointerId);
+    canvas.classList.add("is-dragging");
   });
   canvas.addEventListener("pointermove", event => {
     if (dragging === null) return;
-    const point = canvas.createSVGPoint(); point.x = event.clientX; point.y = event.clientY;
-    const local = point.matrixTransform(canvas.getScreenCTM().inverse());
+    const point = canvasPoint(event);
     const atom = atomById(dragging);
-    if (atom) { atom.x = Math.max(24, Math.min(696, local.x)); atom.y = Math.max(24, Math.min(221, local.y)); render(); }
+    if (atom) {
+      atom.x = Math.max(32, Math.min(1168, point.x + dragOffset.x));
+      atom.y = Math.max(32, Math.min(568, point.y + dragOffset.y));
+      render();
+    }
   });
-  canvas.addEventListener("pointerup", () => { if (dragging !== null) { dragging = null; syncText(); } });
+  canvas.addEventListener("pointerup", () => {
+    if (dragging === null) return;
+    finishDrag();
+    canvas.classList.remove("is-dragging");
+  });
+  canvas.addEventListener("pointercancel", () => {
+    finishDrag();
+    canvas.classList.remove("is-dragging");
+  });
+  canvas.addEventListener("lostpointercapture", () => {
+    finishDrag();
+    canvas.classList.remove("is-dragging");
+  });
   text.addEventListener("input", () => {
     source = "text";
     const parsed = parseStructure(text.value);
