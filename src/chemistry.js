@@ -1031,7 +1031,6 @@ export function mountStructureEditor(container) {
   let source = "";
   let parseError = "";
   let dragging = null;
-  let suppressCanvasClick = false;
   const atomById = id => graph.atoms.find(a => a.id === id);
   const tell = message => { status.textContent = message; };
   const serialize = () => {
@@ -1091,7 +1090,7 @@ export function mountStructureEditor(container) {
       if (!a || !c) return "";
       return clippedBondLines(a, c, b.order, atomRadius, atomRadius);
     }).join("");
-    const atoms = positioned.atoms.map(atom => `<g class="chem-editor-atom ${selected.includes(atom.id) ? "is-selected" : ""}" data-atom-id="${atom.id}" tabindex="0" role="button" aria-label="اتم ${atom.element}"><circle cx="${atom.x}" cy="${atom.y}" r="${atomRadius}"></circle><text x="${atom.x}" y="${atom.y + 5}" text-anchor="middle">${escapeHtml(atom.element)}</text></g>`).join("");
+    const atoms = positioned.atoms.map(atom => `<g class="chem-editor-atom ${selected.includes(atom.id) ? "is-selected" : ""}" data-atom-id="${atom.id}" aria-pressed="${selected.includes(atom.id)}" tabindex="0" role="button" aria-label="اتم ${atom.element}"><circle cx="${atom.x}" cy="${atom.y}" r="${atomRadius}"></circle><text x="${atom.x}" y="${atom.y + 5}" text-anchor="middle">${escapeHtml(atom.element)}</text></g>`).join("");
     canvas.innerHTML = `<g class="chem-editor-bonds">${bonds}</g><g class="chem-editor-atoms">${atoms}</g>`;
   };
   const syncText = () => {
@@ -1146,7 +1145,6 @@ export function mountStructureEditor(container) {
     graph = { atoms: [], bonds: [] }; selected = []; source = ""; text.value = ""; parseError = ""; render(); tell("صفحه پاک شد.");
   });
   canvas.addEventListener("click", event => {
-    if (suppressCanvasClick) { suppressCanvasClick = false; return; }
     if (event.target.closest("[data-atom-id]")) return;
     if (activeMode !== "add") {
       if (selected.length) { selected = []; render(); }
@@ -1167,7 +1165,11 @@ export function mountStructureEditor(container) {
     if (selected.includes(id)) selected = selected.filter(x => x !== id);
     else if (selected.length < 2) selected.push(id);
     else selected = [id];
-    render();
+    canvas.querySelectorAll("[data-atom-id]").forEach(node => {
+      const active = selected.includes(Number(node.dataset.atomId));
+      node.classList.toggle("is-selected", active);
+      node.setAttribute("aria-pressed", String(active));
+    });
     if (selected.length === 2) tell("دو اتم موجود انتخاب شدند؛ نوع پیوند را برای اتصال یا تغییر پیوند بزن.");
     else tell(selected.length ? "اتم اول انتخاب شد؛ اتم دوم را انتخاب کن." : "انتخاب اتم لغو شد.");
   };
@@ -1183,7 +1185,6 @@ export function mountStructureEditor(container) {
     if (!node || event.button !== 0) return;
     if (activeMode === "select") {
       event.preventDefault();
-      suppressCanvasClick = true;
       selectAtom(Number(node.dataset.atomId));
       return;
     }
