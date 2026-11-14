@@ -138,6 +138,15 @@ test("editor atoms have a larger drag target and preserve the pointer grab offse
   assert.match(editor, /canvas\.addEventListener\("lostpointercapture"/);
 });
 
+test("mobile editor canvas can scroll horizontally while atom touch remains draggable", () => {
+  const css = readFileSync(new URL("../src/chemistry.css", import.meta.url), "utf8");
+  assert.match(css, /\.chem-editor-canvas-wrap\s*\{[^}]*overflow: auto;/s);
+  assert.match(css, /\.chem-editor-canvas\s*\{[^}]*min-width: 720px/s);
+  assert.match(css, /\.chem-editor-canvas\s*\{[^}]*touch-action: pan-x;/s);
+  assert.match(css, /\.chem-editor-atom\s*\{[^}]*touch-action: none;/s);
+});
+
+
 test("structure notation supports temporary disconnected editor atoms", () => {
   const graph = parseStructure("C.O.N");
   assert.equal(graph.atoms.length, 3);
