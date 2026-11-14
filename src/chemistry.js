@@ -636,24 +636,40 @@ function makeAlkylNamingMolecule(parentLength, branches) {
   return { smiles, name, type: "alkyl", carbonCount: graph.atoms.length };
 }
 
-function generatedAlkylNamingMolecules() {
-  const examples = [
-    makeAlkylNamingMolecule(10, [
-      { locant: 4, size: 2 }, { locant: 4, size: 2 }, { locant: 5, size: 2 },
-      { locant: 7, size: 1 }, { locant: 7, size: 1 }
-    ]),
-    makeAlkylNamingMolecule(10, [
-      { locant: 5, size: 3 }, { locant: 7, size: 1 }
-    ]),
-    makeAlkylNamingMolecule(10, [
-      { locant: 5, size: 4 }, { locant: 7, size: 1 }
-    ])
-  ];
-  for (let i = 0; i < 12; i++) {
-    const parentLength = 8 + rnd(3);
+function generatedAlkylNamingMolecules(maxCarbons = 10) {
+  const maximum = Math.max(1, Math.min(10, Number(maxCarbons) || 10));
+  const examples = [];
+  if (maximum >= 10) {
+    examples.push(
+      makeAlkylNamingMolecule(10, [
+        { locant: 4, size: 2 }, { locant: 4, size: 2 }, { locant: 5, size: 2 },
+        { locant: 7, size: 1 }, { locant: 7, size: 1 }
+      ]),
+      makeAlkylNamingMolecule(10, [
+        { locant: 5, size: 3 }, { locant: 7, size: 1 }
+      ]),
+      makeAlkylNamingMolecule(10, [
+        { locant: 5, size: 4 }, { locant: 7, size: 1 }
+      ])
+    );
+  }
+  if (maximum < 3) {
+    for (let length = 1; length <= maximum; length++) {
+      const smiles = "C".repeat(length);
+      examples.push({
+        smiles,
+        name: ALKANE_ROOTS[length],
+        type: "alkyl",
+        carbonCount: length
+      });
+    }
+    return examples;
+  }
+  for (let i = 0; i < 18; i++) {
+    const parentLength = 3 + rnd(maximum - 2);
     const positions = [];
-    for (let locant = 4; locant <= parentLength - 3; locant++) positions.push(locant, locant);
-    const branchCount = Math.min(3 + rnd(3), positions.length, 18 - parentLength);
+    for (let locant = 2; locant < parentLength; locant++) positions.push(locant, locant);
+    const branchCount = Math.min(1 + rnd(4), positions.length, 18 - parentLength);
     const branches = [];
     let remainingCarbons = 18 - parentLength;
     for (let count = 0; count < branchCount && remainingCarbons > 0; count++) {
@@ -665,7 +681,7 @@ function generatedAlkylNamingMolecules() {
       branches.push({ locant, size });
     }
     const molecule = makeAlkylNamingMolecule(parentLength, branches);
-    if (molecule) examples.push(molecule);
+    if (molecule && carbonChainLength(parseStructure(molecule.smiles)) <= maximum) examples.push(molecule);
   }
   return examples.filter(Boolean);
 }
@@ -677,9 +693,10 @@ function buildHydrocarbonBag(cfg = {}) {
   const includeSingle = !!cfg.chains?.single;
   const includeMultiple = !!cfg.chains?.multiple;
   const includeCyclic = !!cfg.cyclic;
+  const maxCarbons = Math.max(1, Math.min(10, Number(cfg.maxCarbons) || 10));
   if (cfg.alkylOnly) {
     if (types.structureToName) {
-      generatedAlkylNamingMolecules().forEach(molecule => {
+      generatedAlkylNamingMolecules(maxCarbons).forEach(molecule => {
         const graph = parseStructure(molecule.smiles);
         (styles.length ? styles : ["structural"]).forEach(style => {
           questions.push({ k: "chem", kind: "hydroName", molecule, graph, style });
@@ -693,13 +710,14 @@ function buildHydrocarbonBag(cfg = {}) {
     if (entry.type === "multiple" && !includeMultiple) return;
     if ((entry.type === "cyclic" || entry.type === "aromatic") && !includeCyclic) return;
     const graph = parseStructure(entry.smiles);
+    if (carbonChainLength(graph) > maxCarbons) return;
     if (types.nameToStructure) questions.push({ k: "chem", kind: "hydroDraw", molecule: entry, graph });
     if (types.structureToName) {
       (styles.length ? styles : ["structural"]).forEach(style => questions.push({ k: "chem", kind: "hydroName", molecule: entry, graph, style }));
     }
   });
   if (includeCyclic) {
-    const aromatic = HYDROCARBONS.find(x => x.type === "aromatic");
+    const aromatic = maxCarbons >= 6 ? HYDROCARBONS.find(x => x.type === "aromatic") : null;
     const distractors = ["C1CCCCC1", "CC=CC", "CC(C)C"].map(smiles => ({ smiles, graph: parseStructure(smiles) }));
     if (aromatic) questions.push({ k: "chem", kind: "aromatic", molecule: aromatic, graph: parseStructure(aromatic.smiles), options: shuffle([{ smiles: aromatic.smiles, name: "بنزن", correct: true }, ...distractors.map((d, i) => ({ smiles: d.smiles, name: ["سیکلوهگزان", "بوت-۲-ان", "۲-متیل‌پروپان"][i], correct: false }))]) });
   }
@@ -725,13 +743,14 @@ function buildIntegratedBag(config = {}) {
   const showHydro = !!hydroTypes.structureToName;
   const styles = ["skeletal", "structural", "explicit"].filter(style => hydro.models?.[style]);
   if (showHydro && styles.length) {
+    const maxCarbons = Math.max(1, Math.min(10, Number(hydro.maxCarbons) || 10));
     const hydroEntries = hydro.alkylOnly
-      ? generatedAlkylNamingMolecules()
+      ? generatedAlkylNamingMolecules(maxCarbons)
       : HYDROCARBONS.filter(entry => {
         if (entry.type === "single" && !hydroChains.single) return false;
         if (entry.type === "multiple" && !hydroChains.multiple) return false;
         if ((entry.type === "cyclic" || entry.type === "aromatic") && !hydro.cyclic) return false;
-        return true;
+        return carbonChainLength(parseStructure(entry.smiles)) <= maxCarbons;
       });
     hydroEntries.forEach(entry => {
       const molecule = { ...entry, groups: [] };
@@ -741,7 +760,7 @@ function buildIntegratedBag(config = {}) {
   FUNCTIONAL_COMPOUNDS.forEach(compound => compounds.push({ molecule: compound, style: "structural" }));
   const questions = compounds.map(({ molecule, style }) => ({ k: "chem", kind: "integrated", compound: molecule, graph: parseStructure(molecule.smiles), style }));
   if (hydro.cyclic) {
-    const aromatic = HYDROCARBONS.find(entry => entry.type === "aromatic");
+    const aromatic = Number(hydro.maxCarbons || 10) >= 6 ? HYDROCARBONS.find(entry => entry.type === "aromatic") : null;
     if (aromatic) {
       const distractors = ["C1CCCCC1", "CC=CC", "CC(C)C"].map(smiles => ({ smiles, graph: parseStructure(smiles) }));
       questions.push({ k: "chem", kind: "aromatic", molecule: aromatic, graph: parseStructure(aromatic.smiles), options: shuffle([{ smiles: aromatic.smiles, name: "بنزن", correct: true }, ...distractors.map((d, i) => ({ smiles: d.smiles, name: ["سیکلوهگزان", "بوت-۲-ان", "۲-متیل‌پروپان"][i], correct: false }))]) });
