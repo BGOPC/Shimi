@@ -112,8 +112,8 @@ test("all generated hydrocarbon questions accept their canonical answer", () => 
 });
 
 test("molecule renderer uses tidy horizontal chains, clear vertical branches and label-edge bonds", () => {
-  const structural = renderMoleculeSvg("CC(C)CC", "structural");
-  const explicit = renderMoleculeSvg("CC(C)CC", "explicit");
+  const structural = renderMoleculeSvg("CC(C)CCC", "structural");
+  const explicit = renderMoleculeSvg("CC(C)CCC", "explicit");
   const skeletal = renderMoleculeSvg("CCCO", "skeletal");
   assert.match(structural, /class="molecule-atom atom-/);
   assert.match(explicit, /CH<tspan class="atom-subscript">₃<\/tspan>/);
