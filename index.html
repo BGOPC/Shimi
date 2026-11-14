@@ -145,9 +145,12 @@
       </div>
     </div>
 
-    </div>
-    <div class="chemistry-grid" id="chemistryGrid">
-      <section class="chemistry-card">
+    <div class="card mobile-accordion-card" data-mobile-accordion>
+      <button class="mobile-card-toggle" type="button" aria-expanded="false" aria-controls="mobile-hydro-content">
+        <span>نام‌گذاری هیدروکربن‌ها</span>
+        <span class="mobile-card-chevron" aria-hidden="true"></span>
+      </button>
+      <div class="mobile-card-content" id="mobile-hydro-content">
         <h2>نام‌گذاری هیدروکربن‌ها</h2>
         <p class="hint">از متان تا دکان، زنجیره‌ای، شاخه‌دار و حلقوی</p>
         <p class="sub">نوع سؤال</p>
@@ -155,6 +158,22 @@
           <label class="chip"><input data-chem-setting id="hydroTypeDraw" type="checkbox" value="nameToStructure" checked><span>نام ← رسم ساختار</span></label>
           <label class="chip"><input data-chem-setting id="hydroTypeName" type="checkbox" value="structureToName" checked><span>ساختار ← نام‌گذاری</span></label>
         </div>
+        <p class="sub">حداکثر طول زنجیر اصلی یا حلقه</p>
+        <label class="chem-limit-control" for="hydroMaxCarbons">
+          <span>حداکثر تعداد کربن</span>
+          <select id="hydroMaxCarbons" class="chem-limit-select" data-chem-setting>
+            <option value="1">۱ کربن — مت</option>
+            <option value="2">۲ کربن — ات</option>
+            <option value="3">۳ کربن — پروپ</option>
+            <option value="4">۴ کربن — بوت</option>
+            <option value="5">۵ کربن — پنت</option>
+            <option value="6">۶ کربن — هگز</option>
+            <option value="7">۷ کربن — هپت</option>
+            <option value="8">۸ کربن — اوکت</option>
+            <option value="9">۹ کربن — نون</option>
+            <option value="10" selected>۱۰ کربن — دک</option>
+          </select>
+        </label>
         <p class="sub">مدل نمایش ساختار سؤال (می‌توانی چند مورد را انتخاب کنی)</p>
         <div class="chips" id="hydroModels">
           <label class="chip"><input data-chem-setting id="hydroModelSkeletal" type="checkbox" value="skeletal" checked><span>خط و زاویه</span></label>
@@ -170,11 +189,17 @@
           <label class="chip"><input data-chem-setting id="hydroCyclic" type="checkbox" value="cyclic" checked><span>ترکیبات حلقوی</span></label>
           <label class="chip"><input data-chem-setting id="hydroAlkylOnly" type="checkbox" value="alkylOnly"><span>فقط آلکان‌ها و آلکیل‌ها (زنجیر اصلی و شاخه‌ها)</span></label>
         </div>
-        <p class="chem-setting-note">با فعال‌کردن این حالت، فقط ساختار آلکان‌های شاخه‌دار نمایش داده می‌شود و باید زنجیر اصلی و شمارهٔ شاخه‌ها را نام‌گذاری کنی.</p>
-        <button class="btn primary" id="startHydrocarbon" type="button">شروع نام‌گذاری هیدروکربن‌ها</button>
-      </section>
+        <p class="chem-setting-note">با فعال‌کردن حالت آلکان و آلکیل، سؤال‌ها روی انتخاب زنجیر اصلی، شماره‌گذاری و نام‌گذاری شاخه‌ها متمرکز می‌شوند.</p>
+        <button class="btn primary wide" id="startHydrocarbon">شروع نام‌گذاری هیدروکربن‌ها</button>
+      </div>
+    </div>
 
-      <section class="chemistry-card">
+    <div class="card mobile-accordion-card" data-mobile-accordion>
+      <button class="mobile-card-toggle" type="button" aria-expanded="false" aria-controls="mobile-functional-content">
+        <span>گروه‌های عاملی</span>
+        <span class="mobile-card-chevron" aria-hidden="true"></span>
+      </button>
+      <div class="mobile-card-content" id="mobile-functional-content">
         <h2>گروه‌های عاملی</h2>
         <p class="hint">تشخیص گروه، رسم ساختار، نام گروه و خانوادهٔ آن</p>
         <p class="sub">نوع سؤال‌ها</p>
@@ -186,17 +211,16 @@
           <label class="chip"><input data-chem-setting id="functionalShapeFamily" type="checkbox" value="shapeToFamily" checked><span>شکل گروه ← خانواده</span></label>
         </div>
         <p class="chem-setting-note">در تشخیص ترکیب، گروه‌های جامع‌تر مثل کربوکسیل، استر و آمید بر هم‌پوشانی‌های ساده‌تر اولویت دارند.</p>
-        <button class="btn primary" id="startFunctional" type="button">شروع آزمون گروه‌های عاملی</button>
-      </section>
+        <button class="btn primary wide" id="startFunctional">شروع آزمون گروه‌های عاملی</button>
+      </div>
+    </div>
 
-      <section class="chemistry-card chem-hydro-exam-card">
-        <h2>آزمون جامع هیدروکربن‌ها</h2>
-        <p class="hint">ترکیب سؤال‌های رسم ساختار و نام‌گذاری در یک آزمون</p>
-        <p class="chem-setting-note">از گزینه‌های بخش نام‌گذاری هیدروکربن‌ها استفاده می‌کند؛ با فعال‌بودن آلکان و آلکیل، آزمون روی نام‌گذاری ساختارهای شاخه‌دار متمرکز می‌شود.</p>
-        <button class="btn primary" id="startHydrocarbonExam" type="button">شروع آزمون جامع هیدروکربن‌ها</button>
-      </section>
-
-      <section class="chemistry-card chem-mixed-card">
+    <div class="card mobile-accordion-card chem-mixed-card" data-mobile-accordion>
+      <button class="mobile-card-toggle" type="button" aria-expanded="false" aria-controls="mobile-chem-mixed-content">
+        <span>آزمون جامع شیمی آلی</span>
+        <span class="mobile-card-chevron" aria-hidden="true"></span>
+      </button>
+      <div class="mobile-card-content" id="mobile-chem-mixed-content">
         <h2>آزمون جامع شیمی آلی</h2>
         <p class="hint">ترکیب‌ها را نام‌گذاری کن و همهٔ گروه‌های عاملی آن‌ها را مشخص کن</p>
         <div class="chips chem-mixed-options" id="chemMixedParts">
@@ -204,12 +228,10 @@
           <label class="chip"><input data-chem-setting id="chemMixedFunctional" type="checkbox" value="functional" checked><span>سؤال‌های گروه عاملی</span></label>
           <label class="chip"><input data-chem-setting id="chemMixedIntegrated" type="checkbox" value="integrated" checked><span>سؤال ترکیبی: نام + گروه‌های عاملی</span></label>
         </div>
-        <button class="btn primary" id="startChemMixed" type="button">شروع آزمون جامع شیمی آلی</button>
-      </section>
+        <button class="btn primary wide" id="startChemMixed">شروع آزمون جامع شیمی آلی</button>
+      </div>
     </div>
-  </section>
-
-  <section id="quiz" class="screen">
+s="screen">
     <div class="topbar">
       <button class="btn ghost small" id="finish">پایان</button>
       <div class="stats">
