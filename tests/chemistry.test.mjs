@@ -393,6 +393,31 @@ test("alkyl-only mode respects both selected question directions", () => {
   assert.ok(both.some(item => item.kind === "hydroName"));
 });
 
+test("alkyl naming omits a locant only when the substituent has exactly one valid position", () => {
+  const bag = buildChemistryBag("hydrocarbon", {
+    alkylOnly: true,
+    maxCarbons: 5,
+    types: { structureToName: true },
+    models: { structural: true }
+  });
+  const isobutane = bag.find(item => item.molecule.smiles === "CC(C)C");
+  const threeEthylpentane = bag.find(item => item.molecule.smiles === "CCC(CC)CC");
+  assert.ok(isobutane);
+  assert.ok(threeEthylpentane);
+  assert.equal(isobutane.molecule.name, "متیل‌پروپان");
+  assert.ok(isobutane.molecule.acceptedNames.includes("۲-متیل‌پروپان"));
+  assert.equal(threeEthylpentane.molecule.name, "اتیل‌پنتان");
+  assert.ok(threeEthylpentane.molecule.acceptedNames.includes("۳-اتیل‌پنتان"));
+
+  const isobutaneQuestion = makeChemistryQuestion(isobutane);
+  assert.equal(isobutaneQuestion.check({ name: "متیل پروپان" }).name.ok, true);
+  assert.equal(isobutaneQuestion.check({ name: "۲ متیل پروپان" }).name.ok, true);
+  const ethylQuestion = makeChemistryQuestion(threeEthylpentane);
+  assert.equal(ethylQuestion.check({ name: "اتیل پنتان" }).name.ok, true);
+  assert.equal(ethylQuestion.check({ name: "۳ اتیل پنتان" }).name.ok, true);
+  assert.equal(ethylQuestion.check({ name: "۲ اتیل پنتان" }).name.ok, false);
+});
+
 test("alkyl-only mode generates branched alkane naming questions with parent-chain locants", () => {
   const bag = buildChemistryBag("hydrocarbon", {
     alkylOnly: true,
