@@ -450,7 +450,8 @@ export function renderMoleculeSvg(input, mode = "structural", className = "molec
     const hiddenR = options.hideRLabels === true && atom.element === "R";
     const showAtom = !hiddenR && (mode !== "skeletal" || atom.element !== "C" || graph.atoms.length === 1);
     const showVertex = !hiddenR && !showAtom;
-    const hydrogenCount = mode === "explicit" ? implicitHydrogens(atom, graph) : 0;
+    const showImplicitHydrogens = mode === "explicit" || (mode === "structural" && ["O", "N", "S"].includes(atom.element));
+    const hydrogenCount = showImplicitHydrogens ? implicitHydrogens(atom, graph) : 0;
     const label = atom.element + (hydrogenCount ? "H" + (hydrogenCount > 1 ? toSub(hydrogenCount) : "") : "");
     const halfWidth = showAtom ? Math.max(12, label.length * 7 + 5) : showVertex ? 4 : 0;
     const halfHeight = showAtom ? 17 : showVertex ? 4 : 0;
