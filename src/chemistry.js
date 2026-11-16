@@ -475,9 +475,9 @@ export function renderMoleculeSvg(input, mode = "structural", className = "molec
   }).join("");
   const atomMarkup = display.map(({ atom, showAtom, showVertex, hiddenR, label }) => {
     if (hiddenR) return "";
-    if (showVertex) return \`<circle class="molecule-vertex" cx="\${atom.x}" cy="\${atom.y}" r="4.5" />\`;
-    const labelMarkup = label.replace(/H([₀-₉]+)/, "H<tspan class="atom-subscript">\$1</tspan>");
-    return \`<text class="molecule-atom atom-\${atom.element.toLowerCase()}" x="\${atom.x}" y="\${atom.y + 7}" text-anchor="middle">\${labelMarkup}</text>\`;
+    if (showVertex) return `<circle class="molecule-vertex" cx="${atom.x}" cy="${atom.y}" r="4.5" />`;
+    const labelMarkup = label.replace(/H([₀-₉]+)/, "H<tspan class="atom-subscript">$1</tspan>");
+    return `<text class="molecule-atom atom-${atom.element.toLowerCase()}" x="${atom.x}" y="${atom.y + 7}" text-anchor="middle">${labelMarkup}</text>`;
   }).join("");
   return `<svg class="${className}" viewBox="${minX} ${minY} ${width} ${height}" role="img" aria-label="ساختار مولکولی" preserveAspectRatio="xMidYMid meet"><g class="molecule-bonds">${bondMarkup}</g><g class="molecule-atoms">${atomMarkup}</g></svg>`;
 }
