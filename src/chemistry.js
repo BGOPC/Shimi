@@ -442,16 +442,19 @@ function clippedLabelBondLines(a, b, order, halfWidthA, halfHeightA, halfWidthB,
   return markup.join("");
 }
 
-export function renderMoleculeSvg(input, mode = "structural", className = "molecule-preview") {
+export function renderMoleculeSvg(input, mode = "structural", className = "molecule-preview", options = {}) {
   const graph = typeof input === "string" ? parseStructure(input) : input;
   if (!graph || !graph.atoms.length) return "<div class=\"chem-empty\">ساختار قابل نمایش نیست</div>";
   const positioned = layoutMoleculeGraph(graph, mode);
   const display = positioned.atoms.map(atom => {
-    const showAtom = mode !== "skeletal" || atom.element !== "C" || graph.atoms.length === 1;
+    const hiddenR = options.hideRLabels === true && atom.element === "R";
+    const showAtom = !hiddenR && (mode !== "skeletal" || atom.element !== "C" || graph.atoms.length === 1);
+    const showVertex = !hiddenR && !showAtom;
     const hydrogenCount = mode === "explicit" ? implicitHydrogens(atom, graph) : 0;
     const label = atom.element + (hydrogenCount ? "H" + (hydrogenCount > 1 ? toSub(hydrogenCount) : "") : "");
-    const halfWidth = showAtom ? Math.max(12, label.length * 7 + 5) : 4;
-    return { atom, showAtom, label, halfWidth, halfHeight: showAtom ? 17 : 4 };
+    const halfWidth = showAtom ? Math.max(12, label.length * 7 + 5) : showVertex ? 4 : 0;
+    const halfHeight = showAtom ? 17 : showVertex ? 4 : 0;
+    return { atom, showAtom, showVertex, hiddenR, label, halfWidth, halfHeight };
   });
   const displayById = new Map(display.map(item => [item.atom.id, item]));
   const xs = display.map(item => item.atom.x);
@@ -470,8 +473,9 @@ export function renderMoleculeSvg(input, mode = "structural", className = "molec
       second.halfWidth, second.halfHeight
     );
   }).join("");
-  const atomMarkup = display.map(({ atom, showAtom, label }) => {
-    if (!showAtom) return `<circle class="molecule-vertex" cx="${atom.x}" cy="${atom.y}" r="4.5" />`;
+  const atomMarkup = display.map(({ atom, showAtom, showVertex, hiddenR, label }) => {
+    if (hiddenR) return "";
+    if (showVertex) return `<circle class="molecule-vertex" cx="${atom.x}" cy="${atom.y}" r="4.5" />`;
     const labelMarkup = label.replace(/H([₀-₉]+)/, "H<tspan class=\"atom-subscript\">$1</tspan>");
     return `<text class="molecule-atom atom-${atom.element.toLowerCase()}" x="${atom.x}" y="${atom.y + 7}" text-anchor="middle">${labelMarkup}</text>`;
   }).join("");
@@ -941,10 +945,10 @@ export function makeChemistryQuestion(data) {
   }
   if (data.kind === "fgShapeName") return {
     badge: "گروه‌های عاملی",
-    prompt: `نام این گروه عاملی چیست؟${renderMoleculeSvg(data.graph, "structural", "molecule-question")}`,
+    prompt: `نام این گروه عاملی چیست؟${renderMoleculeSvg(data.graph, "structural", "molecule-question", { hideRLabels: true })}`,
     fields: [nameField("name", "نام گروه عاملی")],
     check: values => ({ name: compareNames(values.name, groupAliases(data.group.id)) }),
-    answer: renderMoleculeSvg(data.graph, "structural", "molecule-answer") + `<div class="chem-answer-name">${escapeHtml(data.group.group)}</div>`
+    answer: renderMoleculeSvg(data.graph, "structural", "molecule-answer", { hideRLabels: true }) + `<div class="chem-answer-name">${escapeHtml(data.group.group)}</div>`
   };
   if (data.kind === "fgNameShape") return {
     badge: "گروه‌های عاملی",
@@ -952,16 +956,16 @@ export function makeChemistryQuestion(data) {
     fields: [structureField()],
     editor: true,
     check: values => ({ structure: values.structure?.graph && sameStructure(values.structure.graph, data.graph) ? { ok: true } : { ok: false, msg: values.structure?.error || "اتصال اتم‌ها با ساختار گروه عاملی یکسان نیست" } }),
-    answer: renderMoleculeSvg(data.graph, "structural", "molecule-answer") + `<div class="chem-answer-name">${escapeHtml(data.group.family)}</div>`
+    answer: renderMoleculeSvg(data.graph, "structural", "molecule-answer", { hideRLabels: true }) + `<div class="chem-answer-name">${escapeHtml(data.group.family)}</div>`
   };
   if (data.kind === "fgNameFamily" || data.kind === "fgShapeFamily") {
-    const prompt = data.kind === "fgNameFamily" ? `خانوادهٔ گروه عاملی <b>${escapeHtml(data.group.group)}</b> چیست؟` : `این ساختار متعلق به کدام خانواده است؟${renderMoleculeSvg(data.graph, "structural", "molecule-question")}`;
+    const prompt = data.kind === "fgNameFamily" ? `خانوادهٔ گروه عاملی <b>${escapeHtml(data.group.group)}</b> چیست؟` : `این ساختار متعلق به کدام خانواده است؟${renderMoleculeSvg(data.graph, "structural", "molecule-question", { hideRLabels: true })}`;
     return {
       badge: "گروه‌های عاملی",
       prompt,
       fields: [nameField("name", "نام خانواده")],
       check: values => ({ name: compareNames(values.name, [data.group.family]) }),
-      answer: renderMoleculeSvg(data.graph, "structural", "molecule-answer") + `<div class="chem-answer-name">${escapeHtml(data.group.family)}</div>`
+      answer: renderMoleculeSvg(data.graph, "structural", "molecule-answer", { hideRLabels: true }) + `<div class="chem-answer-name">${escapeHtml(data.group.family)}</div>`
     };
   }
   if (data.kind === "integrated") {
