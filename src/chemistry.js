@@ -656,7 +656,7 @@ function compareNumberLists(first, second) {
   return first.length - second.length;
 }
 
-function alkylNameFromGraph(graph) {
+function alkylNameFromGraph(graph, omitUniqueLocant = true) {
   if (!graph || graph.atoms.some(atom => atom.element !== "C") || graph.bonds.length !== graph.atoms.length - 1) return null;
   const adjacency = graph.atoms.map(() => []);
   graph.bonds.forEach(bond => { adjacency[bond.a].push(bond.b); adjacency[bond.b].push(bond.a); });
@@ -729,13 +729,28 @@ function alkylNameFromGraph(graph) {
     if (!grouped.has(item.size)) grouped.set(item.size, []);
     grouped.get(item.size).push(item.locant);
   });
+  const omitLocant = omitUniqueLocant && selected.branches.length === 1 && (() => {
+    const branch = selected.branches[0];
+    const possibleLocants = [];
+    for (let locant = 2; locant < longest; locant++) {
+      const longestPathWithBranch = Math.max(
+        branch.size + locant,
+        branch.size + longest - locant + 1
+      );
+      if (longestPathWithBranch <= longest) possibleLocants.push(locant);
+    }
+    return possibleLocants.length === 1 && possibleLocants[0] === branch.locant;
+  })();
   const parts = [...grouped.entries()]
     .sort((a, b) => ALKYL_SUBSTITUENTS[a[0]].key.localeCompare(ALKYL_SUBSTITUENTS[b[0]].key))
     .map(([size, locants]) => {
       locants.sort((a, b) => a - b);
       const prefix = ALKYL_PREFIXES[locants.length] || "";
       const substituent = ALKYL_SUBSTITUENTS[size].name;
-      return persianNumber(locants.join("،")) + "-" + (prefix ? prefix + "‌" : "") + substituent;
+      const prefixName = (prefix ? prefix + "‌" : "") + substituent;
+      return omitLocant && selected.branches.length === 1
+        ? prefixName
+        : persianNumber(locants.join("،")) + "-" + prefixName;
     });
   if (!parts.length) return ALKANE_ROOTS[longest];
   const last = parts.pop();
@@ -749,7 +764,14 @@ function makeAlkylNamingMolecule(parentLength, branches) {
   const graph = parseStructure(smiles);
   const name = alkylNameFromGraph(graph);
   if (!name) return null;
-  return { smiles, name, type: "alkyl", carbonCount: graph.atoms.length };
+  const legacyName = alkylNameFromGraph(graph, false);
+  return {
+    smiles,
+    name,
+    acceptedNames: [...new Set([name, legacyName].filter(Boolean))],
+    type: "alkyl",
+    carbonCount: graph.atoms.length
+  };
 }
 
 function generatedAlkylNamingMolecules(maxCarbons = 10) {
@@ -768,6 +790,12 @@ function generatedAlkylNamingMolecules(maxCarbons = 10) {
         { locant: 5, size: 4 }, { locant: 7, size: 1 }
       ])
     );
+  }
+  if (maximum >= 3) {
+    examples.push(makeAlkylNamingMolecule(3, [{ locant: 2, size: 1 }]));
+  }
+  if (maximum >= 5) {
+    examples.push(makeAlkylNamingMolecule(5, [{ locant: 3, size: 2 }]));
   }
   if (maximum < 3) {
     for (let length = 1; length <= maximum; length++) {
@@ -916,7 +944,7 @@ export function makeChemistryQuestion(data) {
     badge: "نام‌گذاری هیدروکربن‌ها",
     prompt: `نام این هیدروکربن را بنویس${renderMoleculeSvg(data.graph, data.style, "molecule-question")}`,
     fields: [nameField()],
-    check: values => ({ name: compareNames(values.name, [moleculeName]) }),
+    check: values => ({ name: compareNames(values.name, data.molecule.acceptedNames || [moleculeName]) }),
     answer: renderMoleculeSvg(data.graph, "structural", "molecule-answer") + `<div class="chem-answer-name">${escapeHtml(moleculeName)}</div>`
   };
   if (data.kind === "aromatic") {
@@ -976,7 +1004,7 @@ export function makeChemistryQuestion(data) {
       prompt: `نام این ترکیب و تمام گروه‌های عاملی موجود در آن را مشخص کن${renderMoleculeSvg(data.graph, data.style || "structural", "molecule-question")}`,
       fields: [nameField(), multiField()],
       check: values => {
-        const nameResult = compareNames(values.name, [data.compound.name]);
+        const nameResult = compareNames(values.name, data.compound.acceptedNames || [data.compound.name]);
         const expected = [...groups].sort();
         const actual = [...(values.groups || [])].sort();
         const groupResult = expected.length === actual.length && expected.every((value, i) => value === actual[i])
