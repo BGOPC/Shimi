@@ -207,6 +207,16 @@ test("SVG renderer supports skeletal, structural and explicit-hydrogen modes", (
   assert.match(renderMoleculeSvg("C", "skeletal"), />C</);
 });
 
+test("structural rendering shows implicit hydrogens on heteroatoms", () => {
+  const glycine = renderMoleculeSvg("NCC(=O)O", "structural");
+  assert.match(glycine, />OH<\/text>/);
+  assert.match(glycine, />NH<tspan class="atom-subscript">₂<\/tspan><\/text>/);
+
+  const ethanol = renderMoleculeSvg("CCO", "structural");
+  assert.match(ethanol, />OH<\/text>/);
+  assert.doesNotMatch(ethanol, />CH<tspan/);
+});
+
 test("functional-group R placeholders render as open bond ends without changing structure matching", () => {
   const alcohol = parseStructure("RO[H]");
   const hidden = renderMoleculeSvg(alcohol, "structural", "molecule-question", { hideRLabels: true });
