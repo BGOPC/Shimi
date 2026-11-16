@@ -207,6 +207,34 @@ test("SVG renderer supports skeletal, structural and explicit-hydrogen modes", (
   assert.match(renderMoleculeSvg("C", "skeletal"), />C</);
 });
 
+test("functional-group R placeholders render as open bond ends without changing structure matching", () => {
+  const alcohol = parseStructure("RO[H]");
+  const hidden = renderMoleculeSvg(alcohol, "structural", "molecule-question", { hideRLabels: true });
+  const regular = renderMoleculeSvg(alcohol, "structural", "molecule-question");
+
+  assert.doesNotMatch(hidden, /class="molecule-atom atom-r"[^>]*>R<\/text>/);
+  assert.match(hidden, /<line /);
+  assert.match(hidden, />O<\/text>/);
+  assert.match(hidden, />H<\/text>/);
+  assert.match(regular, /class="molecule-atom atom-r"[^>]*>R<\/text>/);
+  assert.ok(alcohol.atoms.some(atom => atom.element === "R"));
+  assert.equal(sameStructure(parseStructure("C-O-H"), alcohol), true);
+
+  const bag = buildChemistryBag("functional", {
+    types: { structureToName: true, nameToStructure: true, shapeToFamily: true }
+  });
+  const shapeQuestions = bag.filter(item =>
+    ["fgShapeName", "fgNameShape", "fgShapeFamily"].includes(item.kind)
+  );
+  assert.ok(shapeQuestions.length > 0);
+  for (const item of shapeQuestions) {
+    const question = makeChemistryQuestion(item);
+    for (const markup of [question.prompt, question.answer]) {
+      assert.doesNotMatch(markup, /class="molecule-atom atom-r"[^>]*>R<\/text>/, item.group.id);
+    }
+  }
+});
+
 test("functional group detection keeps more specific groups instead of overlaps", () => {
   assert.deepEqual(detectFunctionalGroups(parseStructure("CC(=O)O")), ["carboxyl"]);
   assert.deepEqual(detectFunctionalGroups(parseStructure("CC(=O)OC")), ["ester"]);
